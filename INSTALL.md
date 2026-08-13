@@ -66,6 +66,47 @@ touch ~/.claude/.talk-normal-always
 
 A `SessionStart` hook checks for this file and, when present, loads the full ruleset from the first message of every session. Delete the file to return to on-demand use. The hook respects `$CLAUDE_CONFIG_DIR` when your config lives elsewhere, and "stop talk-normal" still pauses the mode within a session.
 
+### Auto-update (optional)
+
+Third-party marketplaces do not auto-update by default. Two ways to turn it on for this one:
+
+- Open `/plugin`, select the marketplace you added (`astrofoundry` or `talk-normal`), and enable auto-update.
+- Or set it in `~/.claude/settings.json` on your marketplace entry:
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "astrofoundry": {
+      "source": { "source": "github", "repo": "astrofoundry/agent-skills" },
+      "autoUpdate": true
+    }
+  }
+}
+```
+
+Claude Code then checks for updates in the background after each session starts. When one lands, it prompts you to run `/reload-plugins`, which switches skills and hooks to the new version without a restart. Without auto-update, run `claude plugin update talk-normal@astrofoundry` yourself. `claude plugin list` shows the installed version either way.
+
+### Statusline badge (optional)
+
+The plugin ships `statusline/badge.mjs`: it reads the statusline JSON from stdin and prints a green `[TALK-NORMAL:<installed version>]` while the mode is on, or a dim `[TALK-NORMAL:OFF]` while it is off. State comes from what you type — `/talk-normal:talk-normal` records on, "stop talk-normal" records off — and sessions with no recorded choice follow the always-on flag file.
+
+Add this block to your own statusline script (the one `statusLine.command` in settings.json points at), anywhere after it captures stdin into `$input` and resolves `$proj` from the workspace JSON:
+
+```bash
+tn=""
+for f in "$HOME/.claude/settings.json" "$proj/.claude/settings.json" "$proj/.claude/settings.local.json"; do
+  [ -f "$f" ] || continue
+  v=$(jq -r '.enabledPlugins["talk-normal@astrofoundry"] // empty' "$f" 2>/dev/null)
+  [ -n "$v" ] && tn=$v
+done
+if [ "$tn" = "true" ]; then
+  b=$(ls -d "$HOME"/.claude/plugins/cache/astrofoundry/talk-normal/*/statusline/badge.mjs 2>/dev/null | sort -V | tail -1)
+  [ -n "$b" ] && badge=$(printf '%s' "$input" | node "$b" 2>/dev/null) && [ -n "$badge" ] && printf ' %s' "$badge"
+fi
+```
+
+The `enabledPlugins` gate means disabling the plugin removes the badge immediately. If you installed through the direct route, swap `astrofoundry` for `talk-normal` in both the plugin key and the cache path. No statusline script yet? See the statusline page in the Claude Code docs for the two-line `statusLine` settings entry that wires one up.
+
 </details>
 
 <details>
