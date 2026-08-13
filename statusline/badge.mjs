@@ -1,15 +1,28 @@
 // Statusline badge. Reads the statusline stdin JSON, looks the session up in
 // the state file that hooks/track-state.mjs maintains, and prints a colored
-// [TALK-NORMAL:ON] or [TALK-NORMAL:OFF]. A session with no recorded state
-// falls back to the always-on flag file. Prints nothing on any error.
+// [TALK-NORMAL:<installed version>] when on or [TALK-NORMAL:OFF] when off.
+// A session with no recorded state falls back to the always-on flag file.
+// Prints nothing on any error.
 
 import { existsSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const ON = "\x1b[38;5;114m[TALK-NORMAL:ON]\x1b[0m";
 const OFF = "\x1b[2m[TALK-NORMAL:OFF]\x1b[0m";
 const STATE_NAME = ".talk-normal-state.json";
+
+function onBadge() {
+  let label = "ON";
+  try {
+    const manifest = join(dirname(fileURLToPath(import.meta.url)), "..", ".claude-plugin", "plugin.json");
+    const version = JSON.parse(readFileSync(manifest, "utf8")).version;
+    if (typeof version === "string" && version !== "") label = version;
+  } catch {
+    // Version is decoration; ON is still correct.
+  }
+  return `\x1b[38;5;114m[TALK-NORMAL:${label}]\x1b[0m`;
+}
 
 function main() {
   if (process.stdin.isTTY) return;
@@ -26,7 +39,7 @@ function main() {
   }
   if (typeof on !== "boolean") on = existsSync(join(configDir, ".talk-normal-always"));
 
-  process.stdout.write(on ? ON : OFF);
+  process.stdout.write(on ? onBadge() : OFF);
 }
 
 try {

@@ -89,6 +89,7 @@ if (!canonical.equals(cursorCopy)) {
 {
   const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "talk-normal-badge-"));
   const env = { ...process.env, CLAUDE_CONFIG_DIR: scratch };
+  const onLabel = `TALK-NORMAL:${readJson(".claude-plugin/plugin.json").version}`;
   const badgeFor = (sessionId) =>
     run("node", ["statusline/badge.mjs"], { env, input: JSON.stringify({ session_id: sessionId }) }).stdout;
 
@@ -96,7 +97,7 @@ if (!canonical.equals(cursorCopy)) {
     env,
     input: JSON.stringify({ session_id: "s1", user_prompt_raw: "/talk-normal" }),
   });
-  if (!badgeFor("s1").includes("TALK-NORMAL:ON")) fail("badge: /talk-normal should read ON");
+  if (!badgeFor("s1").includes(onLabel)) fail("badge: /talk-normal should read ON with the installed version");
 
   run("node", ["hooks/track-state.mjs"], {
     env,
@@ -110,11 +111,11 @@ if (!canonical.equals(cursorCopy)) {
     env,
     input: JSON.stringify({ session_id: "s1", user_prompt_raw: "/talk-normal:talk-normal" }),
   });
-  if (!badgeFor("s1").includes("TALK-NORMAL:ON")) fail("badge: namespaced command should read ON");
+  if (!badgeFor("s1").includes(onLabel)) fail("badge: namespaced command should read ON");
 
   fs.writeFileSync(path.join(scratch, ".talk-normal-always"), "");
   run("node", ["hooks/always-on.mjs"], { env, input: JSON.stringify({ session_id: "s2", source: "startup" }) });
-  if (!badgeFor("s2").includes("TALK-NORMAL:ON")) fail("badge: startup with always-on flag should read ON");
+  if (!badgeFor("s2").includes(onLabel)) fail("badge: startup with always-on flag should read ON");
 
   fs.rmSync(scratch, { recursive: true, force: true });
   ok("state tracker + badge round-trip");
