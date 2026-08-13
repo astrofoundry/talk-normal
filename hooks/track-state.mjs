@@ -1,7 +1,8 @@
-// UserPromptSubmit hook. Records the session's talk-normal state so the
-// statusline badge can read it: typing /talk-normal records ON, typing the
-// stop phrase records OFF. Prints nothing (UserPromptSubmit stdout would be
-// injected into the conversation) and exits 0 on every path.
+// Records the session's talk-normal state so the statusline badge can read it.
+// Two events feed it: UserPromptExpansion fires when the user types the skill
+// command (plain UserPromptSubmit never sees slash commands), and
+// UserPromptSubmit carries the typed stop phrase. Prints nothing (hook stdout
+// could be injected into the conversation) and exits 0 on every path.
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
@@ -25,13 +26,20 @@ function main() {
   const sessionId = event.session_id;
   if (typeof sessionId !== "string" || sessionId === "") return;
 
-  const text = String(event.user_prompt_raw ?? event.user_prompt ?? "")
-    .trim()
-    .toLowerCase();
-  // The skill invokes as /talk-normal or, namespaced by the plugin, as
-  // /talk-normal:talk-normal — both with optional arguments.
-  const turnsOn = /^\/talk-normal(?::talk-normal)?(?:\s|$)/.test(text);
-  const turnsOff = text === "stop talk-normal" || text === "stop talk normal";
+  let turnsOn = false;
+  let turnsOff = false;
+
+  if (event.hook_event_name === "UserPromptExpansion") {
+    const command = String(event.command_name ?? "").toLowerCase();
+    turnsOn = command === "talk-normal" || command === "talk-normal:talk-normal";
+  } else {
+    const text = String(event.user_prompt_raw ?? event.user_prompt ?? "")
+      .trim()
+      .toLowerCase();
+    turnsOn = /^\/talk-normal(?::talk-normal)?(?:\s|$)/.test(text);
+    turnsOff = text === "stop talk-normal" || text === "stop talk normal";
+  }
+
   if (!turnsOn && !turnsOff) return;
 
   const configDir = process.env.CLAUDE_CONFIG_DIR ?? join(homedir(), ".claude");

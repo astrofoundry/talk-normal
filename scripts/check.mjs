@@ -113,6 +113,18 @@ if (!canonical.equals(cursorCopy)) {
   });
   if (!badgeFor("s1").includes(onLabel)) fail("badge: namespaced command should read ON");
 
+  run("node", ["hooks/track-state.mjs"], {
+    env,
+    input: JSON.stringify({ session_id: "s3", hook_event_name: "UserPromptExpansion", command_name: "talk-normal:talk-normal" }),
+  });
+  if (!badgeFor("s3").includes(onLabel)) fail("badge: expansion event (namespaced) should read ON");
+
+  run("node", ["hooks/track-state.mjs"], {
+    env,
+    input: JSON.stringify({ session_id: "s4", hook_event_name: "UserPromptExpansion", command_name: "talk-normal" }),
+  });
+  if (!badgeFor("s4").includes(onLabel)) fail("badge: expansion event (bare) should read ON");
+
   fs.writeFileSync(path.join(scratch, ".talk-normal-always"), "");
   run("node", ["hooks/always-on.mjs"], { env, input: JSON.stringify({ session_id: "s2", source: "startup" }) });
   if (!badgeFor("s2").includes(onLabel)) fail("badge: startup with always-on flag should read ON");
