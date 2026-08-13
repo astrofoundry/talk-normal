@@ -1,6 +1,6 @@
 # How to install
 
-The plugin is on by default where the harness lets a plugin apply rules at session start: Claude Code, the Claude desktop app, Pi, and Gemini's extension route. Harnesses that load skills only on invocation (Codex, Qwen, Kimi, Copilot, Zed, Cursor, OpenCode) activate per session with one command. Every section below states which model applies.
+The plugin is on by default where the harness lets a plugin apply rules at session start: Claude Code, the Claude desktop app, Pi, Gemini's extension route, and Codex CLI (after a one-time hook trust). Harnesses that load skills only on invocation (Qwen, Kimi, Copilot, Zed, Cursor, OpenCode, the ChatGPT desktop app) activate per session with one command. Every section below states which model applies.
 
 <details>
 <summary><strong>Claude Code</strong></summary>
@@ -105,26 +105,29 @@ Two documented limits: cloud sessions have no plugin browser — declare the plu
 <details>
 <summary><strong>Codex CLI</strong></summary>
 
-Codex loads plugin skills on invocation; there is no plugin-owned always-on. One command per session.
+On by default after a one-time step: the plugin bundles a `SessionStart` hook that loads the ruleset into every session, and Codex requires you to trust that hook once.
 
 ### Install
 
-Two phases: register the marketplace from the command line, then install the plugin in the plugin browser.
+1. Register the marketplace: `codex plugin marketplace add astrofoundry/talk-normal`.
+2. Start `codex` and open the plugin browser — the **Plugins** screen, listed in the `/` command menu. Select the `talk-normal` marketplace and install **talk-normal**. There is no CLI install command; installation goes through this screen.
+3. Run `/hooks`, review the talk-normal `SessionStart` hook, and trust it. Codex skips untrusted plugin hooks by design.
 
-```bash
-codex plugin marketplace add astrofoundry/talk-normal
-```
+From the next session, the rules load at start — the footer shows "Loading talk-normal ruleset" while the hook runs. Node.js must be on your PATH.
 
-Then start `codex` and open the plugin browser — the **Plugins** screen, listed in the `/` command menu. Select the `talk-normal` marketplace and install **talk-normal**. There is no CLI install command; installation goes through this screen.
+### Turn it off
 
-### Use
+- For the current session: say "stop talk-normal". Type `$talk-normal` to turn it back on.
+- For every session: `touch ~/.codex/.talk-normal-off`. Delete the file to return to on by default.
+- Completely: untrust or disable the hook in `/hooks`, or remove the plugin in the plugin browser.
 
-Type `$talk-normal` in the composer at the start of a session. The rules then apply for that session; "stop talk-normal" ends them. Codex does not activate the skill on its own (`allow_implicit_invocation: false`).
+Without the trusted hook, the plugin still works per session: type `$talk-normal` in the composer. Codex does not activate the skill on its own (`allow_implicit_invocation: false`).
 
 ### Verify
 
 ```bash
 codex plugin marketplace list
+grep -A2 talk-normal ~/.codex/config.toml
 ```
 
 ### Update
@@ -444,8 +447,8 @@ npx skills remove talk-normal
 
 ## Activation model
 
-- **On by default** — Claude Code, the Claude desktop app, Pi, and Gemini's extension route. The plugin applies the rules from the first message; you opt out per session ("stop talk-normal") or for good (the `.talk-normal-off` flag, or uninstall).
-- **Per session** — Codex, the ChatGPT desktop app, Qwen, Kimi, Copilot, Zed, Cursor, OpenCode. Those harnesses load skills only on invocation, so you type the command once per session.
+- **On by default** — Claude Code, the Claude desktop app, Pi, Gemini's extension route, and Codex CLI after its one-time hook trust. The plugin applies the rules from the first message; you opt out per session ("stop talk-normal") or for good (the `.talk-normal-off` flag, or uninstall).
+- **Per session** — the ChatGPT desktop app, Qwen, Kimi, Copilot, Zed, Cursor, OpenCode. Those harnesses load skills only on invocation, so you type the command once per session.
 
 ## Troubleshooting
 

@@ -41,7 +41,7 @@ claude plugin install talk-normal@astrofoundry
 
 ## Use
 
-- Installed means on: in Claude Code, Pi, and Gemini's extension route the rules apply from the first message of every session.
+- Installed means on: in Claude Code, Pi, Gemini's extension route, and Codex CLI (after a one-time `/hooks` trust) the rules apply from the first message of every session.
 - "stop talk-normal" turns it off for the session; `/talk-normal:talk-normal` (Claude Code) or `/talk-normal` turns it back on.
 - `touch ~/.claude/.talk-normal-off` opts out of the default in Claude Code; delete the file to return. Pi uses `~/.pi/agent/.talk-normal-off`.
 - Harnesses that load skills only on invocation (Codex, Copilot, Zed, Cursor, and the rest) take one command per session — see INSTALL.md.

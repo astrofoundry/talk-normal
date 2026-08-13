@@ -17,6 +17,7 @@
     "codex"
   ],
   "skills": "./skills/",
+  "hooks": "./hooks/codex.json",
   "interface": {
     "displayName": "Talk Normal",
     "shortDescription": "Plain, unambiguous, action-first output",

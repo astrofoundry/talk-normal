@@ -17,7 +17,7 @@ const MANIFESTS = [
   "kimi.plugin.json",
   "package.json",
 ];
-const OTHER_JSON = [".claude-plugin/marketplace.json", "hooks/hooks.json", "tsconfig.json"];
+const OTHER_JSON = [".claude-plugin/marketplace.json", "hooks/hooks.json", "hooks/codex.json", "tsconfig.json"];
 
 let failures = 0;
 
@@ -83,6 +83,27 @@ if (!canonical.equals(cursorCopy)) {
   }
   fs.rmSync(scratch, { recursive: true, force: true });
   ok("hook dry-run (on by default, silent when opted out)");
+}
+
+{
+  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "talk-normal-codex-"));
+  const env = { ...process.env, HOME: scratch };
+  const byDefault = run("node", ["hooks/codex-session-start.mjs"], { env });
+  if (byDefault.status !== 0 || !byDefault.stdout.startsWith("TALK-NORMAL ACTIVE")) {
+    fail("codex hook by default: expected TALK-NORMAL ACTIVE on stdout, exit 0");
+  }
+  const tokenEstimate = Math.ceil(byDefault.stdout.length / 4);
+  if (tokenEstimate > 2300) {
+    fail(`codex hook output near Codex's 2500-token cap: ~${tokenEstimate} tokens`);
+  }
+  fs.mkdirSync(path.join(scratch, ".codex"), { recursive: true });
+  fs.writeFileSync(path.join(scratch, ".codex", ".talk-normal-off"), "");
+  const optedOut = run("node", ["hooks/codex-session-start.mjs"], { env });
+  if (optedOut.status !== 0 || optedOut.stdout !== "") {
+    fail("codex hook with .talk-normal-off: expected empty stdout, exit 0");
+  }
+  fs.rmSync(scratch, { recursive: true, force: true });
+  ok(`codex hook dry-run (on by default, opt-out works, ~${tokenEstimate} tokens)`);
 }
 
 {
