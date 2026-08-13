@@ -87,6 +87,34 @@ if (!canonical.equals(cursorCopy)) {
 }
 
 {
+  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "talk-normal-badge-"));
+  const env = { ...process.env, CLAUDE_CONFIG_DIR: scratch };
+  const badgeFor = (sessionId) =>
+    run("node", ["statusline/badge.mjs"], { env, input: JSON.stringify({ session_id: sessionId }) }).stdout;
+
+  run("node", ["hooks/track-state.mjs"], {
+    env,
+    input: JSON.stringify({ session_id: "s1", user_prompt_raw: "/talk-normal" }),
+  });
+  if (!badgeFor("s1").includes("TALK-NORMAL:ON")) fail("badge: /talk-normal should read ON");
+
+  run("node", ["hooks/track-state.mjs"], {
+    env,
+    input: JSON.stringify({ session_id: "s1", user_prompt_raw: "stop talk-normal" }),
+  });
+  if (!badgeFor("s1").includes("TALK-NORMAL:OFF")) fail("badge: stop phrase should read OFF");
+
+  if (!badgeFor("unknown").includes("TALK-NORMAL:OFF")) fail("badge: unknown session without flag should read OFF");
+
+  fs.writeFileSync(path.join(scratch, ".talk-normal-always"), "");
+  run("node", ["hooks/always-on.mjs"], { env, input: JSON.stringify({ session_id: "s2", source: "startup" }) });
+  if (!badgeFor("s2").includes("TALK-NORMAL:ON")) fail("badge: startup with always-on flag should read ON");
+
+  fs.rmSync(scratch, { recursive: true, force: true });
+  ok("state tracker + badge round-trip");
+}
+
+{
   const tsc = run("pnpm", ["exec", "tsc", "--noEmit"]);
   if (tsc.status !== 0) {
     fail(`typecheck: ${tsc.stdout}${tsc.stderr}`);
