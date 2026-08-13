@@ -41,7 +41,7 @@ claude plugin install talk-normal@astrofoundry
 
 ## Use
 
-- `/talk-normal` turns it on for the session.
+- `/talk-normal:talk-normal` turns it on for the session in Claude Code (autocomplete completes it from `/talk`); harnesses that read the skill directly use `/talk-normal`.
 - "stop talk-normal" turns it off.
 - `touch ~/.claude/.talk-normal-always` makes it load on every session start (Claude Code); delete the file to stop.
 

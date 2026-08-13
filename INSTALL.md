@@ -35,7 +35,7 @@ claude plugin marketplace add astrofoundry/talk-normal
 claude plugin install talk-normal@talk-normal
 ```
 
-Type `/talk-normal`.
+Type `/talk-normal:talk-normal` — Claude Code namespaces plugin skills, and autocomplete completes the full form from `/talk`.
 
 ### Verify
 
@@ -407,7 +407,7 @@ Paste the snippet from the top of this file into your agent's persistent rules f
 The skill has three states, and installing only reaches the first one:
 
 1. **Installed.** Nothing changes yet. Claude Code and Qwen Code respect `disable-model-invocation: true` in the skill; Codex respects `allow_implicit_invocation: false`. (Harnesses outside this list may auto-activate skills they discover — check yours.)
-2. **Invoked.** `/talk-normal` (or `$talk-normal` in Codex) applies the rules for the rest of the session; "stop talk-normal" ends them.
+2. **Invoked.** `/talk-normal:talk-normal` in Claude Code, `/talk-normal` in harnesses that read the skill directly, `$talk-normal` in Codex — the rules then apply for the rest of the session; "stop talk-normal" ends them.
 3. **Always-on.** A flag file (Claude Code, Pi) or a pasted snippet (everything else) applies the rules from the first message of every session.
 
 ## Troubleshooting
@@ -418,6 +418,6 @@ The skill has three states, and installing only reaches the first one:
 
 **`marketplace add` rejects a local path.** Point it at the repository root — the directory that *contains* `.claude-plugin/`, not `.claude-plugin/` itself.
 
-**Output drifts back to slop mid-session.** Long sessions dilute instructions. Re-invoke `/talk-normal`, or switch to always-on so compaction and restarts re-load the rules.
+**Output drifts back to slop mid-session.** Long sessions dilute instructions. Re-invoke the skill (`/talk-normal:talk-normal` in Claude Code), or switch to always-on so compaction and restarts re-load the rules.
 
 **The rules are not to your taste.** Everything lives in `skills/talk-normal/SKILL.md`. Fork the repo, edit that one file, then point your harness at your fork (Claude Code: `claude plugin marketplace add <you>/talk-normal`, then install `talk-normal@talk-normal`).
