@@ -72,18 +72,17 @@ if (!canonical.equals(cursorCopy)) {
 {
   const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "talk-normal-hook-"));
   const env = { ...process.env, CLAUDE_CONFIG_DIR: scratch };
-  fs.writeFileSync(path.join(scratch, ".talk-normal-always"), "");
-  const withFlag = run("node", ["hooks/always-on.mjs"], { env });
-  if (withFlag.status !== 0 || !withFlag.stdout.startsWith("TALK-NORMAL ACTIVE")) {
-    fail("hook with flag: expected TALK-NORMAL ACTIVE on stdout, exit 0");
+  const byDefault = run("node", ["hooks/always-on.mjs"], { env });
+  if (byDefault.status !== 0 || !byDefault.stdout.startsWith("TALK-NORMAL ACTIVE")) {
+    fail("hook by default: expected TALK-NORMAL ACTIVE on stdout, exit 0");
   }
-  fs.rmSync(path.join(scratch, ".talk-normal-always"));
-  const withoutFlag = run("node", ["hooks/always-on.mjs"], { env });
-  if (withoutFlag.status !== 0 || withoutFlag.stdout !== "") {
-    fail("hook without flag: expected empty stdout, exit 0");
+  fs.writeFileSync(path.join(scratch, ".talk-normal-off"), "");
+  const optedOut = run("node", ["hooks/always-on.mjs"], { env });
+  if (optedOut.status !== 0 || optedOut.stdout !== "") {
+    fail("hook with .talk-normal-off: expected empty stdout, exit 0");
   }
   fs.rmSync(scratch, { recursive: true, force: true });
-  ok("hook dry-run (flag present + absent)");
+  ok("hook dry-run (on by default, silent when opted out)");
 }
 
 {
@@ -105,7 +104,10 @@ if (!canonical.equals(cursorCopy)) {
   });
   if (!badgeFor("s1").includes("TALK-NORMAL:OFF")) fail("badge: stop phrase should read OFF");
 
-  if (!badgeFor("unknown").includes("TALK-NORMAL:OFF")) fail("badge: unknown session without flag should read OFF");
+  if (!badgeFor("unknown").includes(onLabel)) fail("badge: unknown session should read ON by default");
+  fs.writeFileSync(path.join(scratch, ".talk-normal-off"), "");
+  if (!badgeFor("unknown").includes("TALK-NORMAL:OFF")) fail("badge: unknown session with opt-out flag should read OFF");
+  fs.rmSync(path.join(scratch, ".talk-normal-off"));
 
   run("node", ["hooks/track-state.mjs"], {
     env,
@@ -125,9 +127,10 @@ if (!canonical.equals(cursorCopy)) {
   });
   if (!badgeFor("s4").includes(onLabel)) fail("badge: expansion event (bare) should read ON");
 
-  fs.writeFileSync(path.join(scratch, ".talk-normal-always"), "");
+  fs.writeFileSync(path.join(scratch, ".talk-normal-off"), "");
   run("node", ["hooks/always-on.mjs"], { env, input: JSON.stringify({ session_id: "s2", source: "startup" }) });
-  if (!badgeFor("s2").includes(onLabel)) fail("badge: startup with always-on flag should read ON");
+  if (!badgeFor("s2").includes("TALK-NORMAL:OFF")) fail("badge: startup with opt-out flag should read OFF");
+  fs.rmSync(path.join(scratch, ".talk-normal-off"));
 
   fs.rmSync(scratch, { recursive: true, force: true });
   ok("state tracker + badge round-trip");

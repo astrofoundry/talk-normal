@@ -1,17 +1,15 @@
-// Claude Code SessionStart hook. Two jobs:
-//  1. Print the talk-normal ruleset when the opt-in flag file exists (and
-//     print nothing otherwise) — stdout becomes session context.
-//  2. Seed this session's entry in the state file the statusline badge reads:
-//     a fresh session (startup/clear) takes the flag file's value; a resumed,
-//     forked, or compacted session keeps whatever it already recorded.
-// Exits 0 on every path: a hook must never block a session from starting.
+// Claude Code SessionStart hook. The plugin is on by default: this hook
+// prints the talk-normal ruleset at every session start unless the user
+// opted out with $CLAUDE_CONFIG_DIR/.talk-normal-off (default ~/.claude).
+// It also seeds this session's entry in the state file the statusline badge
+// reads. Exits 0 on every path: a hook must never block a session.
 
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const FLAG_NAME = ".talk-normal-always";
+const OFF_FLAG = ".talk-normal-off";
 const STATE_NAME = ".talk-normal-state.json";
 const FRONTMATTER = /^---\r?\n[\s\S]*?\r?\n---\r?\n?/;
 const KEEP_MS = 7 * 24 * 60 * 60 * 1000;
@@ -25,7 +23,7 @@ function readEvent() {
   }
 }
 
-function seedState(configDir, sessionId, source, flagOn) {
+function seedState(configDir, sessionId, source, on) {
   if (typeof sessionId !== "string" || sessionId === "") return;
   const stateFile = join(configDir, STATE_NAME);
   let state = {};
@@ -41,24 +39,24 @@ function seedState(configDir, sessionId, source, flagOn) {
   }
   const fresh = source === "startup" || source === "clear";
   if (fresh || typeof state[sessionId]?.on !== "boolean") {
-    state[sessionId] = { on: flagOn, t: now };
+    state[sessionId] = { on, t: now };
   }
   writeFileSync(stateFile, `${JSON.stringify(state)}\n`);
 }
 
 function main() {
   const configDir = process.env.CLAUDE_CONFIG_DIR ?? join(homedir(), ".claude");
-  const flagFile = join(configDir, FLAG_NAME);
-  const flagOn = existsSync(flagFile);
+  const offFlag = join(configDir, OFF_FLAG);
+  const on = !existsSync(offFlag);
 
   const event = readEvent();
   try {
-    seedState(configDir, event.session_id, event.source, flagOn);
+    seedState(configDir, event.session_id, event.source, on);
   } catch {
     // State is cosmetic; the ruleset below is the real payload.
   }
 
-  if (!flagOn) return;
+  if (!on) return;
 
   const here = dirname(fileURLToPath(import.meta.url));
   const rules = readFileSync(join(here, "..", "skills", "talk-normal", "SKILL.md"), "utf8")
@@ -68,8 +66,8 @@ function main() {
 
   console.log(
     [
-      "TALK-NORMAL ACTIVE (always-on). Apply the ruleset below to every response.",
-      `"stop talk-normal" pauses it for this session; deleting ${flagFile} turns always-on off.`,
+      "TALK-NORMAL ACTIVE. Apply the ruleset below to every response.",
+      `"stop talk-normal" pauses it for this session; create ${offFlag} to turn it off for every session.`,
       "",
       rules,
     ].join("\n"),

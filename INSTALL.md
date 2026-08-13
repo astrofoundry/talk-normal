@@ -1,20 +1,6 @@
 # How to install
 
-Some harnesses below use this always-on snippet in a persistent rules file:
-
-```markdown
-## Output style
-
-Write the way a competent engineer talks to a colleague whose time is short.
-
-Say it plainly: one meaning per word, one verb per action, no synonym rotation. Prefer everyday verbs (use, make sure, check, start, stop, show, fix, change, remove, need). Put the actor in every sentence; simple tenses only. Sentences stay under 20 words in instructions and 25 in descriptions, one instruction each, articles kept. Rewrite multi-word nouns longer than three words. One topic per paragraph, six sentences maximum. Lead warnings with the danger.
-
-Say it in a useful order: the first line carries the point; multi-step work becomes a numbered list of bounded actions; state where things stand every turn; close with one next move; errors get file, cause, fix; results are shown concretely; estimates come in units; lists cap at five items; tangents get one sentence at the end; no warm-up, no recap, no sign-off.
-
-Banned in your own prose: delve, leverage, seamless, robust/powerful/comprehensive as decoration, "it's worth noting", journey/landscape/ecosystem as metaphors, padding adverbs (basically, essentially, actually, simply, just), idioms. Code, commands, error text, and quotes pass through exactly. Precision outranks style.
-
-Bend only here: explanations may run long; a destructive step gets a full-sentence warning and a pause; after three failed fixes, name the doubtful assumption and ask one question; an ambiguous request earns one short question.
-```
+The plugin is on by default where the harness lets a plugin apply rules at session start: Claude Code, the Claude desktop app, Pi, and Gemini's extension route. Harnesses that load skills only on invocation (Codex, Qwen, Kimi, Copilot, Zed, Cursor, OpenCode) activate per session with one command. Every section below states which model applies.
 
 <details>
 <summary><strong>Claude Code</strong></summary>
@@ -35,7 +21,13 @@ claude plugin marketplace add astrofoundry/talk-normal
 claude plugin install talk-normal@talk-normal
 ```
 
-Type `/talk-normal:talk-normal` — Claude Code namespaces plugin skills, and autocomplete completes the full form from `/talk`.
+The rules apply from the first message of every new session. No further step.
+
+### Turn it off
+
+- For the current session: say "stop talk-normal". Type `/talk-normal:talk-normal` to turn it back on (autocomplete completes it from `/talk`).
+- For every session: `touch ~/.claude/.talk-normal-off`. Delete the file to return to on by default. The hook reads `$CLAUDE_CONFIG_DIR` when you moved your config directory.
+- Completely: `claude plugin disable talk-normal`, or uninstall below.
 
 ### Verify
 
@@ -55,16 +47,6 @@ claude plugin marketplace update astrofoundry   # or: talk-normal
 claude plugin uninstall talk-normal
 claude plugin marketplace remove astrofoundry   # or: talk-normal
 ```
-
-To keep it installed but inactive: `claude plugin disable talk-normal`.
-
-### Always-on (optional)
-
-```bash
-touch ~/.claude/.talk-normal-always
-```
-
-A `SessionStart` hook checks for this file and, when present, loads the full ruleset from the first message of every session. Delete the file to return to on-demand use. The hook reads `$CLAUDE_CONFIG_DIR` when you moved your config directory, and "stop talk-normal" still pauses the mode within a session.
 
 ### Auto-update (optional)
 
@@ -88,7 +70,7 @@ Claude Code then checks for updates in the background after each session starts.
 
 ### Statusline badge (optional)
 
-The plugin ships `statusline/badge.mjs`: it reads the statusline JSON from stdin and prints a green `[TALK-NORMAL:<installed version>]` while the mode is on, or a dim `[TALK-NORMAL:OFF]` while it is off. State comes from what you type — `/talk-normal:talk-normal` records on, "stop talk-normal" records off — and sessions with no recorded choice follow the always-on flag file.
+The plugin ships `statusline/badge.mjs`: it reads the statusline JSON from stdin and prints a green `[TALK-NORMAL:<installed version>]` while the mode is on, or a dim `[TALK-NORMAL:OFF]` while it is off. Sessions follow the default (on, unless `.talk-normal-off` exists); "stop talk-normal" and `/talk-normal:talk-normal` record per-session changes.
 
 Add this block to your own statusline script (the one `statusLine.command` in settings.json points at), anywhere after it captures stdin into `$input` and resolves `$proj` from the workspace JSON:
 
@@ -110,7 +92,16 @@ The `enabledPlugins` gate makes the badge disappear immediately when you disable
 </details>
 
 <details>
+<summary><strong>Claude desktop app</strong></summary>
+
+The desktop app runs the same Claude Code engine and reads the same configuration as the CLI. Install once with the commands from the Claude Code section above — the rules, the opt-out flag, and "stop talk-normal" then work identically in desktop sessions.
+
+</details>
+
+<details>
 <summary><strong>Codex CLI</strong></summary>
+
+Codex loads plugin skills on invocation; there is no plugin-owned always-on. One command per session.
 
 ### Install
 
@@ -124,7 +115,7 @@ Then start `codex` and open the plugin browser — the **Plugins** screen, liste
 
 ### Use
 
-Type `$talk-normal` in the composer. Codex does not activate the skill on its own (`allow_implicit_invocation: false`), and installed skills also appear in the `/` command list.
+Type `$talk-normal` in the composer at the start of a session. The rules then apply for that session; "stop talk-normal" ends them. Codex does not activate the skill on its own (`allow_implicit_invocation: false`).
 
 ### Verify
 
@@ -146,16 +137,12 @@ Remove the plugin in the plugin browser, then:
 codex plugin marketplace remove talk-normal
 ```
 
-### Always-on (optional)
-
-Add the snippet from the top of this file to `~/.codex/AGENTS.md`. Codex loads that file into every session, so the rules apply from message one without the plugin. The snippet and the plugin are two separate routes to the same rules; use one.
-
 </details>
 
 <details>
 <summary><strong>ChatGPT desktop app</strong></summary>
 
-Plugins run in Work mode and in Codex inside the ChatGPT desktop app — not in Chat mode, the IDE extension, or mobile.
+Plugins run in Work mode and in Codex inside the ChatGPT desktop app — not in Chat mode, the IDE extension, or mobile. Skills activate per chat.
 
 ### Install
 
@@ -174,18 +161,19 @@ Remove the plugin from the **Installed** row of the Plugins Directory.
 </details>
 
 <details>
-<summary><strong>Claude desktop app</strong></summary>
-
-The desktop app runs the same Claude Code engine and reads the same configuration as the CLI. Install once with the commands from the Claude Code section above — the plugin, the always-on flag, and "stop talk-normal" then work identically in desktop sessions. `/talk-normal:talk-normal` invokes the skill there too.
-
-</details>
-
-<details>
 <summary><strong>Gemini CLI</strong></summary>
 
-Two native routes: a **custom command** (opt-in, off until you invoke it) or an **extension** (always-on once installed). Pick the command route unless you want the rules on every session.
+The extension route is on by default: the extension loads `GEMINI.md`, which imports the full skill, so the rules apply from message one. The command route is the per-session alternative.
 
-### Install (command, opt-in)
+### Install (extension, on by default)
+
+```bash
+gemini extensions install https://github.com/astrofoundry/talk-normal
+```
+
+`git` must be installed.
+
+### Install (command, per session)
 
 ```bash
 mkdir -p ~/.gemini/commands
@@ -193,15 +181,7 @@ curl -fsSL https://raw.githubusercontent.com/astrofoundry/talk-normal/main/skill
   -o ~/.gemini/commands/talk-normal.toml
 ```
 
-Start a new session, type `/talk-normal`. It stays on for that session.
-
-### Install (extension, always-on)
-
-```bash
-gemini extensions install https://github.com/astrofoundry/talk-normal
-```
-
-The extension loads `GEMINI.md`, which imports the full skill, so the rules apply from message one. `git` must be installed.
+Start a new session and type `/talk-normal` when you want the rules.
 
 ### Verify
 
@@ -229,13 +209,15 @@ rm ~/.gemini/commands/talk-normal.toml     # command route
 <details>
 <summary><strong>Qwen Code</strong></summary>
 
+Qwen loads plugin skills on invocation. One command per session.
+
 ### Install
 
 ```bash
 qwen extensions install astrofoundry/talk-normal
 ```
 
-Type `/talk-normal` to invoke the skill explicitly. Installing the extension changes nothing until you invoke the skill.
+Type `/talk-normal` at the start of a session.
 
 ### Verify
 
@@ -262,6 +244,8 @@ qwen extensions uninstall talk-normal
 <details>
 <summary><strong>Kimi Code CLI</strong></summary>
 
+Kimi loads plugin skills on invocation. One command per session.
+
 ### Install
 
 Start a Kimi Code session, then:
@@ -271,7 +255,7 @@ Start a Kimi Code session, then:
 3. Paste `https://github.com/astrofoundry/talk-normal` and press `Enter`.
 4. Choose **Trust and install**.
 
-Use `/skill:talk-normal` to invoke the skill explicitly.
+Type `/skill:talk-normal` at the start of a session.
 
 ### Update
 
@@ -286,7 +270,7 @@ Use `/skill:talk-normal` to invoke the skill explicitly.
 <details>
 <summary><strong>Pi</strong></summary>
 
-Pi reads this repository as a native package: `extensions/` provides the session-persistent mode, `skills/` keeps the Agent Skills entry point available.
+Pi reads this repository as a native package, and the mode is on by default: the extension injects the ruleset at every new, resumed, forked, or reloaded session.
 
 ### Install
 
@@ -294,19 +278,14 @@ Pi reads this repository as a native package: `extensions/` provides the session
 pi install https://github.com/astrofoundry/talk-normal
 ```
 
-Start a new Pi session and toggle the mode:
+The footer shows `● TALK NORMAL` while the mode is active.
 
-```text
-/talk-normal
-```
+### Turn it off
 
-The footer shows `● TALK NORMAL` while the mode is active. Run the command again to turn it off, or be explicit with `/talk-normal on`, `/talk-normal off`, or the phrase `stop talk-normal`.
+- For the current session: `/talk-normal off`, `/talk-normal` (toggle), or the phrase `stop talk-normal`. A saved choice for the session outranks the default.
+- For every session: `touch ~/.pi/agent/.talk-normal-off`. Delete the file to return to on by default. If `PI_CODING_AGENT_DIR` is set, put the flag there instead. Run `/reload` or open a new session after changing it.
 
-The extension injects the ruleset into the conversation once — not on every request — and injects it again when compaction drops it. The Agent Skills command stays available as an alias: `/skill:talk-normal`. To start a session with the mode already on:
-
-```bash
-pi --talk-normal
-```
+The extension injects the ruleset into the conversation once — not on every request — and injects it again when compaction drops it. The Agent Skills command stays available as an alias: `/skill:talk-normal`.
 
 ### Verify
 
@@ -314,7 +293,7 @@ pi --talk-normal
 pi list
 ```
 
-Check that the package is listed, then type `/talk-normal` and look for `● TALK NORMAL` in the footer.
+Check that the package is listed and that `● TALK NORMAL` appears in the footer of a new session.
 
 ### Update
 
@@ -332,20 +311,12 @@ Run `pi list`, copy the talk-normal source string, then:
 pi remove <source>
 ```
 
-### Always-on (optional)
-
-```bash
-touch ~/.pi/agent/.talk-normal-always
-```
-
-The extension reads the flag at every new, resumed, forked, or reloaded session. A choice already saved in the current session outranks the flag, so `stop talk-normal` keeps that session off. Delete the file to return to on-demand use. If `PI_CODING_AGENT_DIR` is set, put the flag there instead. Run `/reload` or open a new session after changing it.
-
 </details>
 
 <details>
 <summary><strong>GitHub Copilot (VS Code and Copilot CLI)</strong></summary>
 
-Copilot reads Agent Skills natively: the same `SKILL.md`, no conversion.
+Copilot reads Agent Skills natively and loads them on invocation. One command per session.
 
 ### Install
 
@@ -361,6 +332,8 @@ git clone https://github.com/astrofoundry/talk-normal
 mkdir -p ~/.copilot/skills
 cp -R talk-normal/skills/talk-normal ~/.copilot/skills/
 ```
+
+Type `/talk-normal` at the start of a chat.
 
 ### Verify
 
@@ -382,16 +355,12 @@ npx skills update talk-normal
 npx skills remove talk-normal
 ```
 
-### Always-on (optional)
-
-Add the snippet from the top of this file to `.github/copilot-instructions.md` in the project.
-
 </details>
 
 <details>
 <summary><strong>Zed</strong></summary>
 
-Zed's Agent reads Agent Skills natively.
+Zed's Agent reads Agent Skills natively and loads them on invocation. One command per chat.
 
 ### Install
 
@@ -422,16 +391,12 @@ Re-import from the same URL, or re-copy the folder after `git pull`.
 
 Remove `talk-normal` from the Skills manager, or delete `~/.config/zed/skills/talk-normal`.
 
-### Always-on (optional)
-
-Add the snippet from the top of this file to `~/.config/zed/AGENTS.md`.
-
 </details>
 
 <details>
 <summary><strong>Cursor, OpenCode, and any other agent-skills harness</strong></summary>
 
-Works with any harness that reads Agent Skills. Swap `-a <agent>` for yours.
+These harnesses read Agent Skills and load them on invocation. One command per chat. Swap `-a <agent>` for yours.
 
 ### Install
 
@@ -471,28 +436,21 @@ npx skills update talk-normal
 npx skills remove talk-normal
 ```
 
-### Always-on (optional)
-
-Paste the snippet from the top of this file into your agent's persistent rules file. Cursor: **Settings → Rules → User Rules**, or a project rule under `.cursor/rules/` with `alwaysApply: true`. OpenCode: `~/.config/opencode/AGENTS.md`.
-
 </details>
 
 ## Activation model
 
-The skill has three states, and installing only reaches the first one:
-
-1. **Installed.** Nothing changes yet. Claude Code and Qwen Code respect `disable-model-invocation: true` in the skill; Codex respects `allow_implicit_invocation: false`. (Harnesses outside this list may auto-activate skills they discover — check yours.)
-2. **Invoked.** `/talk-normal:talk-normal` in Claude Code, `/talk-normal` in harnesses that read the skill directly, `$talk-normal` in Codex — the rules then apply for the rest of the session; "stop talk-normal" ends them.
-3. **Always-on.** A flag file (Claude Code, Pi) or a pasted snippet (everything else) applies the rules from the first message of every session.
+- **On by default** — Claude Code, the Claude desktop app, Pi, and Gemini's extension route. The plugin applies the rules from the first message; you opt out per session ("stop talk-normal") or for good (the `.talk-normal-off` flag, or uninstall).
+- **Per session** — Codex, the ChatGPT desktop app, Qwen, Kimi, Copilot, Zed, Cursor, OpenCode. Those harnesses load skills only on invocation, so you type the command once per session.
 
 ## Troubleshooting
 
 **The slash command is missing.** The command index builds at startup — open a fresh session after you install.
 
-**The always-on flag does nothing.** The flag is read by the plugin's hook, which is also loaded at startup: update the plugin, restart, and check the flag file's exact path (`$CLAUDE_CONFIG_DIR` overrides `~/.claude`).
+**The rules do not apply in a new session (Claude Code).** Check for a leftover opt-out: `ls ~/.claude/.talk-normal-off`. Also update the plugin and restart — hooks load at startup.
 
 **`marketplace add` rejects a local path.** Point it at the repository root — the directory that *contains* `.claude-plugin/`, not `.claude-plugin/` itself.
 
-**Output drifts back to slop mid-session.** In a long session, older instructions have less effect on the model. Re-invoke the skill (`/talk-normal:talk-normal` in Claude Code), or switch to always-on so compaction and restarts re-load the rules.
+**Output drifts back to slop mid-session.** In a long session, older instructions have less effect on the model. Re-invoke the skill (`/talk-normal:talk-normal` in Claude Code), and report the drift — the ruleset wording is tunable.
 
 **You want different rules.** The full ruleset is one file: `skills/talk-normal/SKILL.md`. Fork the repository, edit that file, then install your fork (Claude Code: `claude plugin marketplace add <you>/talk-normal`, then `claude plugin install talk-normal@talk-normal`).

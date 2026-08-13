@@ -1,8 +1,8 @@
 // Statusline badge. Reads the statusline stdin JSON, looks the session up in
 // the state file that hooks/track-state.mjs maintains, and prints a colored
 // [TALK-NORMAL:<installed version>] when on or [TALK-NORMAL:OFF] when off.
-// A session with no recorded state falls back to the always-on flag file.
-// Prints nothing on any error.
+// A session with no recorded state follows the default: on, unless the
+// .talk-normal-off opt-out flag exists. Prints nothing on any error.
 
 import { existsSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
@@ -37,7 +37,7 @@ function main() {
   } catch {
     on = undefined;
   }
-  if (typeof on !== "boolean") on = existsSync(join(configDir, ".talk-normal-always"));
+  if (typeof on !== "boolean") on = !existsSync(join(configDir, ".talk-normal-off"));
 
   process.stdout.write(on ? onBadge() : OFF);
 }

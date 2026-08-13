@@ -41,9 +41,10 @@ claude plugin install talk-normal@astrofoundry
 
 ## Use
 
-- `/talk-normal:talk-normal` turns it on for the session in Claude Code; autocomplete completes it from `/talk`. Harnesses that read the skill directly use `/talk-normal`.
-- "stop talk-normal" turns it off.
-- `touch ~/.claude/.talk-normal-always` makes it load on every session start in Claude Code. Delete the file to stop.
+- Installed means on: in Claude Code, Pi, and Gemini's extension route the rules apply from the first message of every session.
+- "stop talk-normal" turns it off for the session; `/talk-normal:talk-normal` (Claude Code) or `/talk-normal` turns it back on.
+- `touch ~/.claude/.talk-normal-off` opts out of the default in Claude Code; delete the file to return. Pi uses `~/.pi/agent/.talk-normal-off`.
+- Harnesses that load skills only on invocation (Codex, Copilot, Zed, Cursor, and the rest) take one command per session — see INSTALL.md.
 
 The full ruleset is one file: [skills/talk-normal/SKILL.md](skills/talk-normal/SKILL.md). Fork the repository and edit that file — every harness reads the same one.
 

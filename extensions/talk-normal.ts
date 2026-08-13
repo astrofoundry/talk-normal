@@ -1,4 +1,5 @@
-// Pi extension: talk-normal as a session-persistent output mode.
+// Pi extension: talk-normal as a session-persistent output mode, on by
+// default. A .talk-normal-off flag in the Pi agent directory opts out.
 //
 // The ruleset enters the conversation as a single hidden custom message.
 // Session entries record every on/off choice, so the mode survives reloads
@@ -21,7 +22,7 @@ const SKILL_FILE = join(
   "talk-normal",
   "SKILL.md",
 );
-const FLAG_FILE = ".talk-normal-always";
+const OFF_FLAG_FILE = ".talk-normal-off";
 const STATE_ENTRY = "talk-normal-state";
 const RULES_ENTRY = "talk-normal-rules";
 const OFF_ENTRY = "talk-normal-disabled";
@@ -68,7 +69,7 @@ function rulesLive(ctx: ExtensionContext): boolean {
 
 export default function talkNormal(pi: ExtensionAPI) {
   const rules = readRules();
-  const flagPath = join(getAgentDir(), FLAG_FILE);
+  const offFlagPath = join(getAgentDir(), OFF_FLAG_FILE);
   let enabled = false;
 
   const paint = (ctx: ExtensionContext): void => {
@@ -86,7 +87,7 @@ export default function talkNormal(pi: ExtensionAPI) {
   };
 
   const restore = (ctx: ExtensionContext): void => {
-    enabled = savedChoice(ctx) ?? (pi.getFlag("talk-normal") === true || existsSync(flagPath));
+    enabled = savedChoice(ctx) ?? !existsSync(offFlagPath);
     paint(ctx);
     sync(ctx);
   };
@@ -98,12 +99,6 @@ export default function talkNormal(pi: ExtensionAPI) {
     sync(ctx);
     ctx.ui.notify(`Talk-normal mode ${next ? "enabled" : "disabled"}`, "info");
   };
-
-  pi.registerFlag("talk-normal", {
-    description: "Start with talk-normal output enabled",
-    type: "boolean",
-    default: false,
-  });
 
   pi.registerCommand("talk-normal", {
     description: "Toggle talk-normal output for this session",
