@@ -1,6 +1,6 @@
 {
   "name": "talk-normal",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Constrain output to plain, unambiguous, action-first English. One word one meaning, active voice, answer first, no slop.",
   "author": {
     "name": "Astro Foundry",
