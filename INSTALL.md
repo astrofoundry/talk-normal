@@ -94,7 +94,11 @@ The `enabledPlugins` gate makes the badge disappear immediately when you disable
 <details>
 <summary><strong>Claude desktop app</strong></summary>
 
-The desktop app runs the same Claude Code engine and reads the same configuration as the CLI. Install once with the commands from the Claude Code section above — the rules, the opt-out flag, and "stop talk-normal" then work identically in desktop sessions.
+The plugin works in the **Code** tab only. The Chat tab is a plain conversation surface without Claude Code features — no plugins apply there.
+
+Install once with the commands from the Claude Code section above. Local and SSH Code sessions read the same configuration as the CLI, so the rules load at session start, "stop talk-normal" pauses them, and `/talk-normal:talk-normal` re-invokes the skill. The **+** button next to the prompt box lists installed plugins and their skills under **Plugins**.
+
+Two documented limits: cloud sessions have no plugin browser — declare the plugin in the project's `.claude/settings.json` under `enabledPlugins` instead — and WSL sessions do not load plugins.
 
 </details>
 
