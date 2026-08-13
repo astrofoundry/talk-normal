@@ -131,4 +131,4 @@ Then sweep:
 
 ## Attribution
 
-The delivery layer adapts ideas from [i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT, Ayoub G.). The language layer derives from ASD-STE100 Simplified Technical English (first through an adaptation by L1nefeed). ASD-STE100 is a copyright and trademark of ASD, Brussels; this skill is an independent adaptation, not certified STE.
+The delivery layer adapts ideas from [i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT, Ayoub G.). The language layer derives from ASD-STE100 Simplified Technical English, Issue 9. ASD-STE100 is a copyright and trademark of ASD, Brussels; this skill is an independent adaptation, not certified STE.

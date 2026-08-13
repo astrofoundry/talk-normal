@@ -28,8 +28,6 @@ With it:
 >
 > Next: paste the test output if anything still fails.
 
-The full ruleset is one file: [skills/talk-normal/SKILL.md](skills/talk-normal/SKILL.md). Fork the repository and edit that file — every harness reads the same one.
-
 ## Install
 
 Two activation models, depending on what the harness lets a plugin do:
@@ -60,7 +58,7 @@ The rules apply from the first message of every new session. No further step.
 
 ### Turn it off
 
-- For the current session: say "stop talk-normal". Type `/talk-normal:talk-normal` to turn it back on (autocomplete completes it from `/talk`).
+- For the current session: say "stop talk-normal". This instructs the model to stop applying the rules — the plugin stays installed and re-arms at the next session. Type `/talk-normal:talk-normal` to turn it back on (autocomplete completes it from `/talk`).
 - For every session: `touch ~/.claude/.talk-normal-off`. Delete the file to return to on by default. The hook reads `$CLAUDE_CONFIG_DIR` when you moved your config directory.
 - Completely: `claude plugin disable talk-normal`, or uninstall below.
 
@@ -513,7 +511,7 @@ npx skills remove talk-normal
 
 ## The instructions block
 
-One block, one source. Chat surfaces without a plugin layer (claude.ai chat, ChatGPT Chat mode) take this as their persistent instructions — the copy button on the code block is on the right:
+Chat surfaces without a plugin layer (claude.ai chat, ChatGPT Chat mode) use this block as their persistent instructions:
 
 ```markdown
 Write the way a competent engineer talks to a colleague whose time is short.
@@ -527,36 +525,25 @@ Banned: delve, leverage, seamless, robust/powerful/comprehensive as decoration, 
 Bend only here: explanations may run long; a destructive step gets a full-sentence warning and a pause; an ambiguous request earns one short question.
 ```
 
+## Customize
+
+The full ruleset is one file: [skills/talk-normal/SKILL.md](skills/talk-normal/SKILL.md) — every harness reads or derives from it. Fork the repository, edit that file, then install your fork (Claude Code: `claude plugin marketplace add <you>/talk-normal`, then `claude plugin install talk-normal@talk-normal`).
+
 ## Troubleshooting
 
-Each entry: the symptom in bold, then the cause and the fix.
+**The slash command is missing.** The command index builds at startup; open a fresh session after you install.
 
-**The slash command is missing.**
-Cause: the command index builds at startup.
-Fix: open a fresh session after you install.
+**The rules do not apply in a new Claude Code session.** A leftover opt-out flag, or an old plugin version — `ls ~/.claude/.talk-normal-off` and delete it if present; update the plugin and run `/reload-plugins` or restart.
 
-**The rules do not apply in a new Claude Code session.**
-Cause: a leftover opt-out flag, or an old plugin version — the always-on hook loads at startup.
-Fix: `ls ~/.claude/.talk-normal-off` and delete it if present; update the plugin and run `/reload-plugins` or restart.
+**The rules do not load in Codex.** The bundled `SessionStart` hook is not trusted, and Codex skips untrusted plugin hooks by design; run `/hooks`, trust the talk-normal hook, and start a new session.
 
-**The rules do not load in Codex.**
-Cause: the bundled `SessionStart` hook is not trusted — Codex skips untrusted plugin hooks by design.
-Fix: run `/hooks`, review the talk-normal hook, trust it, and start a new session.
+**`marketplace add` rejects a local path.** The path points inside the repository; point it at the directory that *contains* `.claude-plugin/`, not at `.claude-plugin/` itself.
 
-**`marketplace add` rejects a local path.**
-Cause: the path points inside the repository instead of at its root.
-Fix: point it at the directory that *contains* `.claude-plugin/`, not at `.claude-plugin/` itself.
-
-**Output drifts back to slop mid-session.**
-Cause: in a long session, older instructions have less effect on the model.
-Fix: re-invoke the skill (`/talk-normal:talk-normal` in Claude Code); on-by-default surfaces re-load the rules at every new session and after compaction.
-
-**You want different rules.**
-The full ruleset is one file: `skills/talk-normal/SKILL.md`. Fork the repository, edit that file, then install your fork (Claude Code: `claude plugin marketplace add <you>/talk-normal`, then `claude plugin install talk-normal@talk-normal`).
+**Output drifts back to slop mid-session.** Older instructions lose force in a long session; re-invoke the skill (`/talk-normal:talk-normal` in Claude Code). On-by-default surfaces re-load the rules at every new session and after compaction.
 
 ## Credits
 
-The delivery layer adapts ideas from [i-have-adhd](https://github.com/ayghri/i-have-adhd) by Ayoub G. (MIT). The language layer derives from ASD-STE100 Simplified Technical English, first through [an adaptation by L1nefeed](https://gist.github.com/L1nefeed/4164ecaaf77879e76dca3c06f142f1c2). ASD-STE100 is a copyright and trademark of ASD, Brussels — this skill is an independent adaptation, not certified STE.
+The delivery layer adapts ideas from [i-have-adhd](https://github.com/ayghri/i-have-adhd) by Ayoub G. (MIT). The language layer derives from ASD-STE100 Simplified Technical English, Issue 9. ASD-STE100 is a copyright and trademark of ASD, Brussels — this skill is an independent adaptation, not certified STE.
 
 ## License
 
