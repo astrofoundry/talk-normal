@@ -82,91 +82,35 @@ if (!canonical.equals(cursorCopy)) {
 }
 
 {
-  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "talk-normal-hook-"));
-  const env = { ...process.env, CLAUDE_CONFIG_DIR: scratch };
-  const byDefault = run("node", ["hooks/always-on.mjs"], { env });
-  if (byDefault.status !== 0 || !byDefault.stdout.startsWith("TALK-NORMAL ACTIVE")) {
-    fail("hook by default: expected TALK-NORMAL ACTIVE on stdout, exit 0");
+  const hook = run("node", ["hooks/always-on.mjs"]);
+  if (hook.status !== 0 || !hook.stdout.startsWith("TALK-NORMAL ACTIVE")) {
+    fail("claude hook: expected TALK-NORMAL ACTIVE on stdout, exit 0");
+  } else {
+    ok("claude hook prints the ruleset");
   }
-  fs.writeFileSync(path.join(scratch, ".talk-normal-off"), "");
-  const optedOut = run("node", ["hooks/always-on.mjs"], { env });
-  if (optedOut.status !== 0 || optedOut.stdout !== "") {
-    fail("hook with .talk-normal-off: expected empty stdout, exit 0");
-  }
-  fs.rmSync(scratch, { recursive: true, force: true });
-  ok("hook dry-run (on by default, silent when opted out)");
 }
 
 {
-  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "talk-normal-codex-"));
-  const env = { ...process.env, HOME: scratch };
-  const byDefault = run("node", ["hooks/codex-session-start.mjs"], { env });
-  if (byDefault.status !== 0 || !byDefault.stdout.startsWith("TALK-NORMAL ACTIVE")) {
-    fail("codex hook by default: expected TALK-NORMAL ACTIVE on stdout, exit 0");
+  const hook = run("node", ["hooks/codex-session-start.mjs"]);
+  if (hook.status !== 0 || !hook.stdout.startsWith("TALK-NORMAL ACTIVE")) {
+    fail("codex hook: expected TALK-NORMAL ACTIVE on stdout, exit 0");
   }
-  const tokenEstimate = Math.ceil(byDefault.stdout.length / 4);
+  const tokenEstimate = Math.ceil(hook.stdout.length / 4);
   if (tokenEstimate > 2300) {
     fail(`codex hook output near Codex's 2500-token cap: ~${tokenEstimate} tokens`);
+  } else {
+    ok(`codex hook prints the ruleset (~${tokenEstimate} tokens)`);
   }
-  fs.mkdirSync(path.join(scratch, ".codex"), { recursive: true });
-  fs.writeFileSync(path.join(scratch, ".codex", ".talk-normal-off"), "");
-  const optedOut = run("node", ["hooks/codex-session-start.mjs"], { env });
-  if (optedOut.status !== 0 || optedOut.stdout !== "") {
-    fail("codex hook with .talk-normal-off: expected empty stdout, exit 0");
-  }
-  fs.rmSync(scratch, { recursive: true, force: true });
-  ok(`codex hook dry-run (on by default, opt-out works, ~${tokenEstimate} tokens)`);
 }
 
 {
-  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "talk-normal-badge-"));
-  const env = { ...process.env, CLAUDE_CONFIG_DIR: scratch };
   const onLabel = `TALK-NORMAL:${readJson(".claude-plugin/plugin.json").version}`;
-  const badgeFor = (sessionId) =>
-    run("node", ["statusline/badge.mjs"], { env, input: JSON.stringify({ session_id: sessionId }) }).stdout;
-
-  run("node", ["hooks/track-state.mjs"], {
-    env,
-    input: JSON.stringify({ session_id: "s1", prompt: "/talk-normal" }),
-  });
-  if (!badgeFor("s1").includes(onLabel)) fail("badge: /talk-normal should read ON with the installed version");
-
-  run("node", ["hooks/track-state.mjs"], {
-    env,
-    input: JSON.stringify({ session_id: "s1", prompt: "stop talk-normal" }),
-  });
-  if (!badgeFor("s1").includes("TALK-NORMAL:OFF")) fail("badge: stop phrase should read OFF");
-
-  if (!badgeFor("unknown").includes(onLabel)) fail("badge: unknown session should read ON by default");
-  fs.writeFileSync(path.join(scratch, ".talk-normal-off"), "");
-  if (!badgeFor("unknown").includes("TALK-NORMAL:OFF")) fail("badge: unknown session with opt-out flag should read OFF");
-  fs.rmSync(path.join(scratch, ".talk-normal-off"));
-
-  run("node", ["hooks/track-state.mjs"], {
-    env,
-    input: JSON.stringify({ session_id: "s1", prompt: "/talk-normal:talk-normal" }),
-  });
-  if (!badgeFor("s1").includes(onLabel)) fail("badge: namespaced command should read ON");
-
-  run("node", ["hooks/track-state.mjs"], {
-    env,
-    input: JSON.stringify({ session_id: "s3", hook_event_name: "UserPromptExpansion", command_name: "talk-normal:talk-normal" }),
-  });
-  if (!badgeFor("s3").includes(onLabel)) fail("badge: expansion event (namespaced) should read ON");
-
-  run("node", ["hooks/track-state.mjs"], {
-    env,
-    input: JSON.stringify({ session_id: "s4", hook_event_name: "UserPromptExpansion", command_name: "talk-normal" }),
-  });
-  if (!badgeFor("s4").includes(onLabel)) fail("badge: expansion event (bare) should read ON");
-
-  fs.writeFileSync(path.join(scratch, ".talk-normal-off"), "");
-  run("node", ["hooks/always-on.mjs"], { env, input: JSON.stringify({ session_id: "s2", source: "startup" }) });
-  if (!badgeFor("s2").includes("TALK-NORMAL:OFF")) fail("badge: startup with opt-out flag should read OFF");
-  fs.rmSync(path.join(scratch, ".talk-normal-off"));
-
-  fs.rmSync(scratch, { recursive: true, force: true });
-  ok("state tracker + badge round-trip");
+  const badge = run("node", ["statusline/badge.mjs"]);
+  if (badge.status !== 0 || !badge.stdout.includes(onLabel)) {
+    fail(`badge: expected ${onLabel} on stdout`);
+  } else {
+    ok("badge prints the installed version");
+  }
 }
 
 {

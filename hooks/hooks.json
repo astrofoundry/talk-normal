@@ -9,31 +9,7 @@
             "command": "node",
             "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/always-on.mjs"],
             "timeout": 5,
-            "statusMessage": "Checking talk-normal always-on flag..."
-          }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node",
-            "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/track-state.mjs"],
-            "timeout": 5
-          }
-        ]
-      }
-    ],
-    "UserPromptExpansion": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node",
-            "args": ["${CLAUDE_PLUGIN_ROOT}/hooks/track-state.mjs"],
-            "timeout": 5
+            "statusMessage": "Loading talk-normal ruleset..."
           }
         ]
       }

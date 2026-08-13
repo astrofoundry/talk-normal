@@ -32,7 +32,7 @@ With it:
 
 Two activation models, depending on what the harness lets a plugin do:
 
-- **On by default** — Claude Code, the Claude desktop app's Code tab, Pi, Gemini's extension route, and Codex CLI after a one-time hook trust. The rules apply from the first message; you opt out per session ("stop talk-normal") or for good (a `.talk-normal-off` flag, or uninstall).
+- **On by default** — Claude Code, the Claude desktop app's Code tab, Pi, Gemini's extension route, and Codex CLI after a one-time hook trust. The rules apply from the first message of every session; disabling or removing the plugin turns them off.
 - **Per session or per relevance** — claude.ai chat, ChatGPT surfaces, Qwen, Kimi, Copilot, Zed, Cursor, OpenCode. Those surfaces load skills on invocation or by relevance; the [instructions block](#the-instructions-block) is their always-on substitute.
 
 <details>
@@ -58,9 +58,11 @@ The rules apply from the first message of every new session. No further step.
 
 ### Turn it off
 
-- For the current session: say "stop talk-normal". This instructs the model to stop applying the rules — the plugin stays installed and re-arms at the next session. Type `/talk-normal:talk-normal` to turn it back on (autocomplete completes it from `/talk`).
-- For every session: `touch ~/.claude/.talk-normal-off`. Delete the file to return to on by default. The hook reads `$CLAUDE_CONFIG_DIR` when you moved your config directory.
-- Completely: `claude plugin disable talk-normal`, or uninstall below.
+```bash
+claude plugin disable talk-normal
+```
+
+Or uninstall below. Re-invoking mid-session: `/talk-normal:talk-normal` (autocomplete completes it from `/talk`).
 
 ### Verify
 
@@ -103,7 +105,7 @@ Claude Code then checks for updates in the background after each session starts.
 
 ### Statusline badge (optional)
 
-The plugin ships `statusline/badge.mjs`: it reads the statusline JSON from stdin and prints a green `[TALK-NORMAL:<installed version>]` while the mode is on, or a dim `[TALK-NORMAL:OFF]` while it is off. Sessions follow the default (on, unless `.talk-normal-off` exists); "stop talk-normal" and `/talk-normal:talk-normal` record per-session changes.
+The plugin ships `statusline/badge.mjs`: it prints a green `[TALK-NORMAL:<installed version>]`. The block below runs it only while the plugin is enabled, so a disabled plugin shows no badge — the absence is the off state.
 
 Add this block to your own statusline script (the one `statusLine.command` in settings.json points at), anywhere after it captures stdin into `$input` and resolves `$proj` from the workspace JSON:
 
@@ -129,7 +131,7 @@ The `enabledPlugins` gate makes the badge disappear immediately when you disable
 
 The plugin works in the **Code** tab only; the Chat tab is the claude.ai chat surface — see the next section.
 
-Install once with the commands from the Claude Code section above. Local and SSH Code sessions read the same configuration as the CLI, so the rules load at session start, "stop talk-normal" pauses them, and `/talk-normal:talk-normal` re-invokes the skill. The **+** button next to the prompt box lists installed plugins and their skills under **Plugins**.
+Install once with the commands from the Claude Code section above. Local and SSH Code sessions read the same configuration as the CLI, so the rules load at session start, and `/talk-normal:talk-normal` re-invokes the skill. The **+** button next to the prompt box lists installed plugins and their skills under **Plugins**.
 
 Two documented limits: cloud sessions have no plugin browser — declare the plugin in the project's `.claude/settings.json` under `enabledPlugins` instead — and WSL sessions do not load plugins.
 
@@ -171,9 +173,7 @@ From the next session, the rules load at start — the footer shows "Loading tal
 
 ### Turn it off
 
-- For the current session: say "stop talk-normal". Type `$talk-normal` to turn it back on.
-- For every session: `touch ~/.codex/.talk-normal-off`. Delete the file to return to on by default.
-- Completely: untrust or disable the hook in `/hooks`, or remove the plugin in the plugin browser.
+Untrust or disable the hook in `/hooks`, or remove the plugin in the plugin browser.
 
 Without the trusted hook, the plugin still works per session: type `$talk-normal` in the composer. Codex does not activate the skill on its own (`allow_implicit_invocation: false`).
 
@@ -349,14 +349,11 @@ Pi reads this repository as a native package, and the mode is on by default: the
 pi install https://github.com/astrofoundry/talk-normal
 ```
 
-The footer shows `● TALK NORMAL` while the mode is active.
+The footer shows `● TALK NORMAL` while the package is installed. The extension injects the ruleset into the conversation once — not on every request — and injects it again when compaction drops it.
 
 ### Turn it off
 
-- For the current session: `/talk-normal off`, `/talk-normal` (toggle), or the phrase `stop talk-normal`. A saved choice for the session outranks the default.
-- For every session: `touch ~/.pi/agent/.talk-normal-off`. Delete the file to return to on by default. If `PI_CODING_AGENT_DIR` is set, put the flag there instead. Run `/reload` or open a new session after changing it.
-
-The extension injects the ruleset into the conversation once — not on every request — and injects it again when compaction drops it. The Agent Skills command stays available as an alias: `/skill:talk-normal`.
+Remove the package (see Uninstall below).
 
 ### Verify
 
@@ -533,7 +530,7 @@ The full ruleset is one file: [skills/talk-normal/SKILL.md](skills/talk-normal/S
 
 **The slash command is missing.** The command index builds at startup; open a fresh session after you install.
 
-**The rules do not apply in a new Claude Code session.** A leftover opt-out flag, or an old plugin version — `ls ~/.claude/.talk-normal-off` and delete it if present; update the plugin and run `/reload-plugins` or restart.
+**The rules do not apply in a new Claude Code session.** The plugin is disabled, or an old version is loaded — check `claude plugin list`, update, and run `/reload-plugins` or restart.
 
 **The rules do not load in Codex.** The bundled `SessionStart` hook is not trusted, and Codex skips untrusted plugin hooks by design; run `/hooks`, trust the talk-normal hook, and start a new session.
 

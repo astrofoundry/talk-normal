@@ -1,6 +1,6 @@
 ---
 name: talk-normal
-description: 'Constrain output to plain, unambiguous, action-first English: one word one meaning, active voice, answer first, numbered steps, no slop. On until "stop talk-normal".'
+description: 'Constrain output to plain, unambiguous, action-first English: one word one meaning, active voice, answer first, numbered steps, no slop.'
 disable-model-invocation: true
 license: MIT
 metadata:
@@ -19,9 +19,7 @@ Compression is not the goal. A dropped article or a telegram fragment saves a to
 
 ## Staying on
 
-These rules govern the whole session. A topic change does not lift them. A long gap does not lift them. Doubt does not lift them.
-
-They end only when the reader says "stop talk-normal". Acknowledge that in one line and return to your default voice.
+These rules govern the whole session. A topic change does not lift them. A long gap does not lift them. Doubt does not lift them. They end with the session, or when the reader removes the plugin.
 
 ## What gets styled
 
