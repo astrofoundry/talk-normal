@@ -1,0 +1,27 @@
+{
+  "name": "talk-normal",
+  "version": "0.1.0",
+  "description": "Plain, unambiguous, action-first output for Codex: one word one meaning, active voice, answer first, no slop.",
+  "author": {
+    "name": "Astro Foundry",
+    "url": "https://github.com/astrofoundry"
+  },
+  "homepage": "https://github.com/astrofoundry/talk-normal",
+  "repository": "https://github.com/astrofoundry/talk-normal",
+  "license": "MIT",
+  "keywords": ["output-style", "clarity", "ste", "skills", "codex"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Talk Normal",
+    "shortDescription": "Plain, unambiguous, action-first output",
+    "longDescription": "Constrain Codex responses to plain, unambiguous, action-first English: one word one meaning, active voice, short sentences, numbered steps, no slop.",
+    "developerName": "Astro Foundry",
+    "category": "Productivity",
+    "capabilities": ["Instructions"],
+    "websiteURL": "https://github.com/astrofoundry/talk-normal",
+    "defaultPrompt": [
+      "Use talk-normal for this task.",
+      "Rewrite this answer in plain, unambiguous, action-first English."
+    ]
+  }
+}

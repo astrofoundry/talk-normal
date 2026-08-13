@@ -1,0 +1,12 @@
+{
+  "name": "talk-normal",
+  "version": "0.1.0",
+  "description": "Constrain output to plain, unambiguous, action-first English. One word one meaning, active voice, answer first, no slop.",
+  "license": "MIT",
+  "homepage": "https://github.com/astrofoundry/talk-normal",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Talk Normal",
+    "shortDescription": "Plain, unambiguous, action-first output for Kimi Code CLI"
+  }
+}

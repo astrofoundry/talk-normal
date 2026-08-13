@@ -1,0 +1,31 @@
+{
+  "name": "talk-normal",
+  "version": "0.1.0",
+  "description": "Constrain output to plain, unambiguous, action-first English. One word one meaning, active voice, answer first, no slop.",
+  "license": "MIT",
+  "homepage": "https://github.com/astrofoundry/talk-normal",
+  "private": true,
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "check": "node scripts/check.mjs",
+    "release:patch": "node scripts/release.mjs patch",
+    "release:minor": "node scripts/release.mjs minor",
+    "release:major": "node scripts/release.mjs major"
+  },
+  "keywords": [
+    "pi-package"
+  ],
+  "pi": {
+    "extensions": [
+      "./extensions/talk-normal.ts"
+    ],
+    "skills": [
+      "./skills"
+    ]
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "^0.84.1",
+    "@types/node": "^26.2.0",
+    "typescript": "^7.0.2"
+  }
+}

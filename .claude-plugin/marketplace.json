@@ -1,0 +1,17 @@
+{
+  "$schema": "https://www.schemastore.org/claude-code-marketplace.json",
+  "name": "talk-normal",
+  "description": "Plain, unambiguous, action-first output for coding agents.",
+  "owner": {
+    "name": "Astro Foundry",
+    "url": "https://github.com/astrofoundry"
+  },
+  "plugins": [
+    {
+      "name": "talk-normal",
+      "description": "Constrain output to plain, unambiguous, action-first English.",
+      "source": "./",
+      "category": "productivity"
+    }
+  ]
+}

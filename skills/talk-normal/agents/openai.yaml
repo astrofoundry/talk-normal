@@ -1,0 +1,7 @@
+interface:
+  display_name: "Talk Normal"
+  short_description: "Plain, unambiguous, action-first output"
+  default_prompt: "Use $talk-normal to make this response plain, unambiguous, and action-first."
+
+policy:
+  allow_implicit_invocation: false
