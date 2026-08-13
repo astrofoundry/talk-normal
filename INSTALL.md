@@ -144,6 +144,18 @@ Remove the plugin in the plugin browser, then:
 codex plugin marketplace remove talk-normal
 ```
 
+### Enterprise setups where `marketplace add` fails (optional)
+
+Managed Codex deployments can restrict marketplace sources (`requirements.toml`, `restrict_to_allowed_sources`), and the add then fails. The skill still installs without the marketplace, because Codex reads standalone skills from `~/.codex/skills/`:
+
+```bash
+git clone https://github.com/astrofoundry/talk-normal
+mkdir -p ~/.codex/skills
+cp -R talk-normal/skills/talk-normal ~/.codex/skills/
+```
+
+Codex detects the new skill automatically; restart it if `$talk-normal` does not appear. This route is per-session invocation — the plugin's always-on hook does not travel with a standalone skill. To rebuild always-on, point a user-level `SessionStart` hook in `~/.codex/hooks.json` at the copied skill, and trust it in `/hooks`; managed policy has the final word on non-managed hooks.
+
 </details>
 
 <details>
