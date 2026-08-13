@@ -110,15 +110,21 @@ The `enabledPlugins` gate makes the badge disappear immediately when you disable
 </details>
 
 <details>
-<summary><strong>Codex</strong></summary>
+<summary><strong>Codex CLI</strong></summary>
 
 ### Install
+
+Two phases: register the marketplace from the command line, then install the plugin in the plugin browser.
 
 ```bash
 codex plugin marketplace add astrofoundry/talk-normal
 ```
 
-Then open the Plugins browser inside Codex and install **talk-normal** from the `talk-normal` marketplace. Invoke the skill explicitly by typing `$talk-normal`. Codex does not activate it automatically.
+Then start `codex` and open the plugin browser — the **Plugins** screen, listed in the `/` command menu. Select the `talk-normal` marketplace and install **talk-normal**. There is no CLI install command; installation goes through this screen.
+
+### Use
+
+Type `$talk-normal` in the composer. Codex does not activate the skill on its own (`allow_implicit_invocation: false`), and installed skills also appear in the `/` command list.
 
 ### Verify
 
@@ -134,7 +140,7 @@ codex plugin marketplace upgrade talk-normal
 
 ### Uninstall
 
-Remove the plugin in the Plugins browser, then:
+Remove the plugin in the plugin browser, then:
 
 ```bash
 codex plugin marketplace remove talk-normal
@@ -142,7 +148,35 @@ codex plugin marketplace remove talk-normal
 
 ### Always-on (optional)
 
-Add the snippet from the top of this file to `~/.codex/AGENTS.md`.
+Add the snippet from the top of this file to `~/.codex/AGENTS.md`. Codex loads that file into every session, so the rules apply from message one without the plugin. The snippet and the plugin are two separate routes to the same rules; use one.
+
+</details>
+
+<details>
+<summary><strong>ChatGPT desktop app</strong></summary>
+
+Plugins run in Work mode and in Codex inside the ChatGPT desktop app — not in Chat mode, the IDE extension, or mobile.
+
+### Install
+
+1. Register the marketplace once from a terminal: `codex plugin marketplace add astrofoundry/talk-normal`.
+2. In the app, select **Codex** (or switch to Work mode), and open **Plugins**.
+3. Select the `talk-normal` marketplace in the Plugins Directory and install **talk-normal**.
+
+### Use
+
+Type `@` in the composer and select the talk-normal skill, or ask for it by name.
+
+### Uninstall
+
+Remove the plugin from the **Installed** row of the Plugins Directory.
+
+</details>
+
+<details>
+<summary><strong>Claude desktop app</strong></summary>
+
+The desktop app runs the same Claude Code engine and reads the same configuration as the CLI. Install once with the commands from the Claude Code section above — the plugin, the always-on flag, and "stop talk-normal" then work identically in desktop sessions. `/talk-normal:talk-normal` invokes the skill there too.
 
 </details>
 

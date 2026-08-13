@@ -30,7 +30,7 @@ With it:
 
 ## Install
 
-Runs in Claude Code, Codex, Gemini CLI, Qwen Code, Kimi Code CLI, Pi, GitHub Copilot, Zed, Cursor, OpenCode, and any harness that reads Agent Skills. Full per-harness instructions: [INSTALL.md](INSTALL.md).
+Runs in Claude Code, Codex CLI, Gemini CLI, Qwen Code, Kimi Code CLI, Pi, GitHub Copilot, Zed, Cursor, OpenCode, the Claude and ChatGPT desktop apps, and any harness that reads Agent Skills. Full per-harness instructions: [INSTALL.md](INSTALL.md).
 
 Claude Code:
 
