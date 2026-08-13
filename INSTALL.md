@@ -64,7 +64,7 @@ To keep it installed but inactive: `claude plugin disable talk-normal`.
 touch ~/.claude/.talk-normal-always
 ```
 
-A `SessionStart` hook checks for this file and, when present, loads the full ruleset from the first message of every session. Delete the file to return to on-demand use. The hook respects `$CLAUDE_CONFIG_DIR` when your config lives elsewhere, and "stop talk-normal" still pauses the mode within a session.
+A `SessionStart` hook checks for this file and, when present, loads the full ruleset from the first message of every session. Delete the file to return to on-demand use. The hook reads `$CLAUDE_CONFIG_DIR` when you moved your config directory, and "stop talk-normal" still pauses the mode within a session.
 
 ### Auto-update (optional)
 
@@ -84,7 +84,7 @@ Third-party marketplaces do not auto-update by default. Two ways to turn it on f
 }
 ```
 
-Claude Code then checks for updates in the background after each session starts. When one lands, it prompts you to run `/reload-plugins`, which switches skills and hooks to the new version without a restart. Without auto-update, run `claude plugin update talk-normal@astrofoundry` yourself. `claude plugin list` shows the installed version either way.
+Claude Code then checks for updates in the background after each session starts. When an update arrives, it prompts you to run `/reload-plugins`, which switches skills and hooks to the new version without a restart. Without auto-update, run `claude plugin update talk-normal@astrofoundry` yourself. `claude plugin list` shows the installed version either way.
 
 ### Statusline badge (optional)
 
@@ -105,7 +105,7 @@ if [ "$tn" = "true" ]; then
 fi
 ```
 
-The `enabledPlugins` gate means disabling the plugin removes the badge immediately. If you installed through the direct route, swap `astrofoundry` for `talk-normal` in both the plugin key and the cache path. No statusline script yet? See the statusline page in the Claude Code docs for the two-line `statusLine` settings entry that wires one up.
+The `enabledPlugins` gate makes the badge disappear immediately when you disable the plugin. If you installed through the direct route, replace `astrofoundry` with `talk-normal` in both the plugin key and the cache path. If you have no statusline script, see the statusline page in the Claude Code docs for the two-line `statusLine` settings entry that creates one.
 
 </details>
 
@@ -453,12 +453,12 @@ The skill has three states, and installing only reaches the first one:
 
 ## Troubleshooting
 
-**The slash command is missing.** The command index builds at startup — open a fresh session after installing.
+**The slash command is missing.** The command index builds at startup — open a fresh session after you install.
 
 **The always-on flag does nothing.** The flag is read by the plugin's hook, which is also loaded at startup: update the plugin, restart, and check the flag file's exact path (`$CLAUDE_CONFIG_DIR` overrides `~/.claude`).
 
 **`marketplace add` rejects a local path.** Point it at the repository root — the directory that *contains* `.claude-plugin/`, not `.claude-plugin/` itself.
 
-**Output drifts back to slop mid-session.** Long sessions dilute instructions. Re-invoke the skill (`/talk-normal:talk-normal` in Claude Code), or switch to always-on so compaction and restarts re-load the rules.
+**Output drifts back to slop mid-session.** In a long session, older instructions have less effect on the model. Re-invoke the skill (`/talk-normal:talk-normal` in Claude Code), or switch to always-on so compaction and restarts re-load the rules.
 
-**The rules are not to your taste.** Everything lives in `skills/talk-normal/SKILL.md`. Fork the repo, edit that one file, then point your harness at your fork (Claude Code: `claude plugin marketplace add <you>/talk-normal`, then install `talk-normal@talk-normal`).
+**You want different rules.** The full ruleset is one file: `skills/talk-normal/SKILL.md`. Fork the repository, edit that file, then install your fork (Claude Code: `claude plugin marketplace add <you>/talk-normal`, then `claude plugin install talk-normal@talk-normal`).
