@@ -28,7 +28,9 @@ function main() {
   const text = String(event.user_prompt_raw ?? event.user_prompt ?? "")
     .trim()
     .toLowerCase();
-  const turnsOn = text === "/talk-normal" || text.startsWith("/talk-normal ");
+  // The skill invokes as /talk-normal or, namespaced by the plugin, as
+  // /talk-normal:talk-normal — both with optional arguments.
+  const turnsOn = /^\/talk-normal(?::talk-normal)?(?:\s|$)/.test(text);
   const turnsOff = text === "stop talk-normal" || text === "stop talk normal";
   if (!turnsOn && !turnsOff) return;
 
