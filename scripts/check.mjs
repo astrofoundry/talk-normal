@@ -61,6 +61,18 @@ try {
   fail(`lockstep check errored: ${error.message}`);
 }
 
+{
+  const skill = fs.readFileSync(path.join(ROOT, "skills/talk-normal/SKILL.md"), "utf8");
+  const description = skill.match(/^description: '(.*)'$/m)?.[1];
+  if (!description) {
+    fail("SKILL.md frontmatter: description not found in expected single-quoted form");
+  } else if (description.length > 200) {
+    fail(`SKILL.md description is ${description.length} chars; claude.ai caps it at 200`);
+  } else {
+    ok(`skill description within claude.ai cap (${description.length}/200 chars)`);
+  }
+}
+
 const canonical = fs.readFileSync(path.join(ROOT, "skills/talk-normal/SKILL.md"));
 const cursorCopy = fs.readFileSync(path.join(ROOT, ".cursor/skills/talk-normal/SKILL.md"));
 if (!canonical.equals(cursorCopy)) {

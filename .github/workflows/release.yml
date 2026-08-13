@@ -39,7 +39,10 @@ jobs:
       - name: Run checks
         run: node scripts/check.mjs
 
+      - name: Package skill for claude.ai upload
+        run: (cd skills && zip -r ../talk-normal-skill.zip talk-normal)
+
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" --generate-notes --verify-tag
+        run: gh release create "$GITHUB_REF_NAME" --generate-notes --verify-tag talk-normal-skill.zip

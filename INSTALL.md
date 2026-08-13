@@ -92,9 +92,45 @@ The `enabledPlugins` gate makes the badge disappear immediately when you disable
 </details>
 
 <details>
-<summary><strong>Claude desktop app</strong></summary>
+<summary><strong>claude.ai chat (web and the desktop Chat tab)</strong></summary>
 
-The plugin works in the **Code** tab only. The Chat tab is a plain conversation surface without Claude Code features — no plugins apply there.
+The Chat surface has no plugin layer, so the always-on route is the account-wide instructions field, and the skill route is a ZIP upload.
+
+### Always on (recommended)
+
+Open **Settings → Profile**, find **Instructions for Claude**, and paste:
+
+```markdown
+Write the way a competent engineer talks to a colleague whose time is short.
+
+Say it plainly: one meaning per word, one verb per action, no synonym rotation. Prefer everyday verbs (use, make sure, check, start, stop, show, fix, change, remove, need). Put the actor in every sentence; simple tenses only. Sentences stay under 20 words in instructions and 25 in descriptions, one instruction each, articles kept. Rewrite multi-word nouns longer than three words. One topic per paragraph, six sentences maximum. Lead warnings with the danger.
+
+Say it in a useful order: the first line carries the point; multi-step work becomes a numbered list of bounded actions; state where things stand every turn; close with one next move; errors get a location, a cause, and a fix; results are shown concretely; estimates come in units; lists cap at five items; tangents get one sentence at the end; no warm-up, no recap, no sign-off.
+
+Banned: delve, leverage, seamless, robust/powerful/comprehensive as decoration, "it's worth noting", journey/landscape/ecosystem as metaphors, padding adverbs (basically, essentially, actually, simply, just), idioms. Quotes and code pass through exactly. Precision outranks style.
+
+Bend only here: explanations may run long; a destructive step gets a full-sentence warning and a pause; an ambiguous request earns one short question.
+```
+
+These instructions apply to every chat on the account. Remove the block to turn them off.
+
+### The skill (per relevance, Pro/Max/Team/Enterprise)
+
+Chat also runs the actual skill — the same `SKILL.md` the plugin ships — uploaded as a ZIP:
+
+1. Download `talk-normal-skill.zip` from the [latest release](https://github.com/astrofoundry/talk-normal/releases/latest).
+2. In **Settings → Capabilities**, enable **Code execution and file creation** (on Team plans it is on by default; on Enterprise an organization owner enables both that and **Skills** first).
+3. Open **Customize → Skills** and upload the ZIP.
+4. Toggle the skill on.
+
+Claude then applies the skill when a chat matches its description, or when you ask for it by name. Chat ignores the plugin's explicit-invocation flag, so activation is relevance-driven — the instructions block above remains the only guaranteed always-on.
+
+</details>
+
+<details>
+<summary><strong>Claude desktop app — Code tab</strong></summary>
+
+The plugin works in the **Code** tab only. The Chat tab is the claude.ai chat surface — see the section above.
 
 Install once with the commands from the Claude Code section above. Local and SSH Code sessions read the same configuration as the CLI, so the rules load at session start, "stop talk-normal" pauses them, and `/talk-normal:talk-normal` re-invokes the skill. The **+** button next to the prompt box lists installed plugins and their skills under **Plugins**.
 

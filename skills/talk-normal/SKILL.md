@@ -1,6 +1,6 @@
 ---
 name: talk-normal
-description: 'Constrain output to plain, unambiguous, action-first English: one word one meaning, active voice, short sentences, answer first, numbered steps, no slop. Invoke with /talk-normal; stays on until "stop talk-normal".'
+description: 'Constrain output to plain, unambiguous, action-first English: one word one meaning, active voice, answer first, numbered steps, no slop. On until "stop talk-normal".'
 disable-model-invocation: true
 license: MIT
 metadata:
