@@ -33,7 +33,9 @@ function main() {
     const command = String(event.command_name ?? "").toLowerCase();
     turnsOn = command === "talk-normal" || command === "talk-normal:talk-normal";
   } else {
-    const text = String(event.user_prompt_raw ?? event.user_prompt ?? "")
+    // Claude Code 2.1.x sends the typed text as `prompt` (verified against the
+    // binary); the documented `user_prompt` spelling is kept as a fallback.
+    const text = String(event.prompt ?? event.user_prompt ?? "")
       .trim()
       .toLowerCase();
     turnsOn = /^\/talk-normal(?::talk-normal)?(?:\s|$)/.test(text);

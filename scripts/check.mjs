@@ -127,13 +127,13 @@ if (!canonical.equals(cursorCopy)) {
 
   run("node", ["hooks/track-state.mjs"], {
     env,
-    input: JSON.stringify({ session_id: "s1", user_prompt_raw: "/talk-normal" }),
+    input: JSON.stringify({ session_id: "s1", prompt: "/talk-normal" }),
   });
   if (!badgeFor("s1").includes(onLabel)) fail("badge: /talk-normal should read ON with the installed version");
 
   run("node", ["hooks/track-state.mjs"], {
     env,
-    input: JSON.stringify({ session_id: "s1", user_prompt_raw: "stop talk-normal" }),
+    input: JSON.stringify({ session_id: "s1", prompt: "stop talk-normal" }),
   });
   if (!badgeFor("s1").includes("TALK-NORMAL:OFF")) fail("badge: stop phrase should read OFF");
 
@@ -144,7 +144,7 @@ if (!canonical.equals(cursorCopy)) {
 
   run("node", ["hooks/track-state.mjs"], {
     env,
-    input: JSON.stringify({ session_id: "s1", user_prompt_raw: "/talk-normal:talk-normal" }),
+    input: JSON.stringify({ session_id: "s1", prompt: "/talk-normal:talk-normal" }),
   });
   if (!badgeFor("s1").includes(onLabel)) fail("badge: namespaced command should read ON");
 
