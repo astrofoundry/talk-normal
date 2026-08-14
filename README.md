@@ -13,7 +13,7 @@ talk-normal fixes both at once:
 
 The rules follow the work: a prompt written for a subagent carries the ruleset, and the agent rewrites relayed subagent prose to conform while code and errors pass through unchanged.
 
-## See it
+## Before / after
 
 Without the skill:
 
