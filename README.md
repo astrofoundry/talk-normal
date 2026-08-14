@@ -1,5 +1,9 @@
 # talk-normal
 
+<p align="center">
+  <img src="assets/talk-normal.jpg" alt="talk-normal" width="320" />
+</p>
+
 A skill that makes your coding agent write like a competent engineer who respects your time: answer first, plain words, whole sentences, nothing decorative.
 
 ## Why
