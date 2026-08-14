@@ -39,7 +39,8 @@ Two activation models, depending on what the harness lets a plugin do:
 - **On by default** — Claude Code (terminal and desktop Code tab), Codex CLI after a one-time hook trust, Pi, and Gemini's extension route. The rules apply from the first message of every session; disabling or removing the plugin turns them off.
 - **Per session or per relevance** — chat apps and the smaller skills harnesses. Those surfaces load skills on invocation or by relevance; the [instructions block](#the-instructions-block) is their always-on substitute.
 
-### Claude Code
+<details>
+<summary><strong>Claude Code</strong></summary>
 
 Via the Astro Foundry marketplace:
 
@@ -54,7 +55,7 @@ The rules apply from the first message of every new session. `claude plugin list
 
 Turn it off with `claude plugin disable talk-normal` or `claude plugin uninstall talk-normal` — both apply to new sessions; a session that already loaded the rules keeps them until it ends. Re-invoke mid-session with `/talk-normal:talk-normal` (autocomplete completes it from `/talk`).
 
-The **Claude desktop app's Code tab** runs the same engine and configuration: install once with the commands above and local or SSH Code sessions load the rules identically. Cloud sessions have no plugin browser — declare the plugin in the project's `.claude/settings.json` under `enabledPlugins` — and WSL sessions do not load plugins. The Chat tab is a chat app; see [Chat apps](#chat-apps).
+The **Claude desktop app's Code tab** runs the same engine and configuration: install once with the commands above and local or SSH Code sessions load the rules identically. Cloud sessions have no plugin browser — declare the plugin in the project's `.claude/settings.json` under `enabledPlugins` — and WSL sessions do not load plugins. The Chat tab is a chat app; see the Chat apps section.
 
 <details>
 <summary><strong>Auto-update (optional)</strong></summary>
@@ -105,7 +106,10 @@ The `enabledPlugins` gate reads the last settings file that mentions the plugin,
 
 </details>
 
-### Codex
+</details>
+
+<details>
+<summary><strong>Codex</strong></summary>
 
 On by default after a one-time step: the plugin bundles a `SessionStart` hook that loads the ruleset into every session, and Codex requires you to trust that hook once.
 
@@ -117,7 +121,7 @@ From the next session, the rules load at start — the footer shows "Loading tal
 
 Turn it off by untrusting the hook in `/hooks`, or remove the plugin in the plugin browser and run `codex plugin marketplace remove talk-normal`. Without the trusted hook, the plugin still works per session: type `$talk-normal` in the composer. Codex does not activate the skill on its own.
 
-The **ChatGPT desktop app** (Codex or Work mode) installs the same plugin: after the `marketplace add`, open **Plugins** in the app, select the `talk-normal` marketplace, and install. Type `@` in the composer to invoke the skill per chat. Chat mode is a chat app; see [Chat apps](#chat-apps).
+The **ChatGPT desktop app** (Codex or Work mode) installs the same plugin: after the `marketplace add`, open **Plugins** in the app, select the `talk-normal` marketplace, and install. Type `@` in the composer to invoke the skill per chat. Chat mode is a chat app; see the Chat apps section.
 
 <details>
 <summary><strong>Enterprise setups where `marketplace add` fails</strong></summary>
@@ -134,7 +138,10 @@ Codex detects the new skill automatically; restart it if `$talk-normal` does not
 
 </details>
 
-### Pi
+</details>
+
+<details>
+<summary><strong>Pi</strong></summary>
 
 Pi reads this repository as a native package, and the mode is on by default: the extension injects the ruleset at every new, resumed, forked, or reloaded session, and injects it again when compaction drops it.
 
@@ -144,7 +151,10 @@ pi install https://github.com/astrofoundry/talk-normal
 
 The footer shows `● TALK NORMAL` while the package is installed. `pi list` verifies; `pi update --extensions` updates. Turn it off by removing the package: run `pi list`, copy the talk-normal source string, then `pi remove <source>`. The Agent Skills command stays available as an alias: `/skill:talk-normal`.
 
-### Other harnesses
+</details>
+
+<details>
+<summary><strong>Other harnesses</strong></summary>
 
 Each of these loads the skill from this repository; activation is per session unless noted.
 
@@ -166,7 +176,10 @@ For a per-session command instead, copy [gemini.toml](skills/talk-normal/agents/
 
 **Cursor, OpenCode, and any other agent-skills harness** — `npx skills add astrofoundry/talk-normal` (add `-a cursor` or your agent), then `/talk-normal` per chat. Without the CLI, copy `skills/talk-normal/` into the directory your agent scans.
 
-### Chat apps
+</details>
+
+<details>
+<summary><strong>Chat apps</strong></summary>
 
 Chat surfaces have no plugin layer. The always-on route is a persistent instructions field; the skill route uploads the same `SKILL.md` the plugin ships.
 
@@ -177,7 +190,9 @@ Chat surfaces have no plugin layer. The always-on route is a persistent instruct
 
 **ChatGPT Chat mode**
 
-Chat mode loads no plugins and no skills. Paste [the instructions block](#the-instructions-block) into ChatGPT's custom-instructions field (Settings → Personalization); it applies to your chats until you remove it. Work mode and the Codex surface install the real plugin — see [Codex](#codex).
+Chat mode loads no plugins and no skills. Paste [the instructions block](#the-instructions-block) into ChatGPT's custom-instructions field (Settings → Personalization); it applies to your chats until you remove it. Work mode and the Codex surface install the real plugin — see the Codex section.
+
+</details>
 
 ## The instructions block
 
