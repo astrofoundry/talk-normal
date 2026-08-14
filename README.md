@@ -36,13 +36,10 @@ With it:
 
 Two activation models, depending on what the harness lets a plugin do:
 
-- **On by default** — Claude Code, the Claude desktop app's Code tab, Pi, Gemini's extension route, and Codex CLI after a one-time hook trust. The rules apply from the first message of every session; disabling or removing the plugin turns them off.
-- **Per session or per relevance** — claude.ai chat, ChatGPT surfaces, Qwen, Kimi, Copilot, Zed, Cursor, OpenCode. Those surfaces load skills on invocation or by relevance; the [instructions block](#the-instructions-block) is their always-on substitute.
+- **On by default** — Claude Code (terminal and desktop Code tab), Codex CLI after a one-time hook trust, Pi, and Gemini's extension route. The rules apply from the first message of every session; disabling or removing the plugin turns them off.
+- **Per session or per relevance** — chat apps and the smaller skills harnesses. Those surfaces load skills on invocation or by relevance; the [instructions block](#the-instructions-block) is their always-on substitute.
 
-<details>
-<summary><strong>Claude Code</strong></summary>
-
-### Install
+### Claude Code
 
 Via the Astro Foundry marketplace:
 
@@ -51,43 +48,16 @@ claude plugin marketplace add astrofoundry/agent-skills
 claude plugin install talk-normal@astrofoundry
 ```
 
-Or directly from this repository:
+Or directly from this repository: `claude plugin marketplace add astrofoundry/talk-normal`, then `claude plugin install talk-normal@talk-normal`.
 
-```bash
-claude plugin marketplace add astrofoundry/talk-normal
-claude plugin install talk-normal@talk-normal
-```
+The rules apply from the first message of every new session. `claude plugin list` verifies; `claude plugin marketplace update astrofoundry` updates.
 
-The rules apply from the first message of every new session. No further step.
+Turn it off with `claude plugin disable talk-normal` or `claude plugin uninstall talk-normal` — both apply to new sessions; a session that already loaded the rules keeps them until it ends. Re-invoke mid-session with `/talk-normal:talk-normal` (autocomplete completes it from `/talk`).
 
-### Turn it off
+The **Claude desktop app's Code tab** runs the same engine and configuration: install once with the commands above and local or SSH Code sessions load the rules identically. Cloud sessions have no plugin browser — declare the plugin in the project's `.claude/settings.json` under `enabledPlugins` — and WSL sessions do not load plugins. The Chat tab is a chat app; see [Chat apps](#chat-apps).
 
-```bash
-claude plugin disable talk-normal
-```
-
-Or uninstall below. Both apply to new sessions — a session that already loaded the rules keeps them until it ends.
-
-### Verify
-
-```bash
-claude plugin list
-```
-
-### Update
-
-```bash
-claude plugin marketplace update astrofoundry   # or: talk-normal
-```
-
-### Uninstall
-
-```bash
-claude plugin uninstall talk-normal
-claude plugin marketplace remove astrofoundry   # or: talk-normal
-```
-
-### Auto-update (optional)
+<details>
+<summary><strong>Auto-update (optional)</strong></summary>
 
 Third-party marketplaces do not auto-update by default. Two ways to turn it on for this one:
 
@@ -107,7 +77,10 @@ Third-party marketplaces do not auto-update by default. Two ways to turn it on f
 
 Claude Code then checks for updates in the background after each session starts. When an update arrives, it prompts you to run `/reload-plugins`, which switches skills and hooks to the new version without a restart. Without auto-update, run `claude plugin update talk-normal@astrofoundry` yourself. `claude plugin list` shows the installed version either way.
 
-### Statusline badge (optional)
+</details>
+
+<details>
+<summary><strong>Statusline badge (optional)</strong></summary>
 
 The plugin ships `statusline/badge.mjs`: it prints a green `[TALK-NORMAL:<installed version>]`. The block below runs it only while the plugin is enabled, so a disabled plugin shows no badge — the absence is the off state.
 
@@ -130,79 +103,22 @@ The `enabledPlugins` gate reads the last settings file that mentions the plugin,
 
 </details>
 
-<details>
-<summary><strong>Claude desktop app — Code tab</strong></summary>
-
-The plugin works in the **Code** tab only; the Chat tab is the claude.ai chat surface — see the next section.
-
-Install once with the commands from the Claude Code section above. Local and SSH Code sessions read the same configuration as the CLI, so the rules load at session start, and `/talk-normal:talk-normal` re-invokes the skill. The **+** button next to the prompt box lists installed plugins and their skills under **Plugins**.
-
-Two documented limits: cloud sessions have no plugin browser — declare the plugin in the project's `.claude/settings.json` under `enabledPlugins` instead — and WSL sessions do not load plugins.
-
-</details>
-
-<details>
-<summary><strong>claude.ai chat (web and the desktop Chat tab)</strong></summary>
-
-The Chat surface has no plugin layer.
-
-### Always on (recommended)
-
-Open **Settings → Profile**, find **Instructions for Claude**, and paste [the instructions block](#the-instructions-block). It applies to every chat on the account; remove it to turn it off.
-
-### The skill (per relevance, Pro/Max/Team/Enterprise)
-
-Chat also runs the actual skill — the same `SKILL.md` the plugin ships — uploaded as a ZIP:
-
-1. Download `talk-normal-skill.zip` from the [latest release](https://github.com/astrofoundry/talk-normal/releases/latest).
-2. Open **Settings**, go to the **Skills** area — current app versions place it under **Customize**, and the Settings page links there. Enable prerequisites the page asks for (code execution, and on Enterprise an organization owner enables Skills first).
-3. Upload the ZIP and toggle the skill on.
-
-Claude then applies the skill when a chat matches its description, or when you ask for it by name. Chat ignores the plugin's explicit-invocation flag, so activation is relevance-driven — the instructions block remains the only guaranteed always-on.
-
-</details>
-
-<details>
-<summary><strong>Codex CLI</strong></summary>
+### Codex
 
 On by default after a one-time step: the plugin bundles a `SessionStart` hook that loads the ruleset into every session, and Codex requires you to trust that hook once.
-
-### Install
 
 1. Register the marketplace: `codex plugin marketplace add astrofoundry/talk-normal`.
 2. Start `codex` and open the plugin browser — the **Plugins** screen, listed in the `/` command menu. Select the `talk-normal` marketplace and install **talk-normal**. There is no CLI install command; installation goes through this screen.
 3. Run `/hooks`, review the talk-normal `SessionStart` hook, and trust it. Codex skips untrusted plugin hooks by design.
 
-From the next session, the rules load at start — the footer shows "Loading talk-normal ruleset" while the hook runs. Node.js must be on your PATH.
+From the next session, the rules load at start — the footer shows "Loading talk-normal ruleset" while the hook runs. Node.js must be on your PATH. `codex plugin marketplace list` verifies; `codex plugin marketplace upgrade talk-normal` updates.
 
-### Turn it off
+Turn it off by untrusting the hook in `/hooks`, or remove the plugin in the plugin browser and run `codex plugin marketplace remove talk-normal`. Without the trusted hook, the plugin still works per session: type `$talk-normal` in the composer. Codex does not activate the skill on its own.
 
-Untrust or disable the hook in `/hooks`, or remove the plugin in the plugin browser.
+The **ChatGPT desktop app** (Codex or Work mode) installs the same plugin: after the `marketplace add`, open **Plugins** in the app, select the `talk-normal` marketplace, and install. Type `@` in the composer to invoke the skill per chat. Chat mode is a chat app; see [Chat apps](#chat-apps).
 
-Without the trusted hook, the plugin still works per session: type `$talk-normal` in the composer. Codex does not activate the skill on its own (`allow_implicit_invocation: false`).
-
-### Verify
-
-```bash
-codex plugin marketplace list
-grep -A2 talk-normal ~/.codex/config.toml
-```
-
-### Update
-
-```bash
-codex plugin marketplace upgrade talk-normal
-```
-
-### Uninstall
-
-Remove the plugin in the plugin browser, then:
-
-```bash
-codex plugin marketplace remove talk-normal
-```
-
-### Enterprise setups where `marketplace add` fails (optional)
+<details>
+<summary><strong>Enterprise setups where `marketplace add` fails</strong></summary>
 
 Managed Codex deployments can restrict marketplace sources (`requirements.toml`, `restrict_to_allowed_sources`), and the add then fails. The skill still installs without the marketplace, because Codex reads standalone skills from `~/.codex/skills/`:
 
@@ -216,299 +132,50 @@ Codex detects the new skill automatically; restart it if `$talk-normal` does not
 
 </details>
 
-<details>
-<summary><strong>ChatGPT desktop app and Chat mode</strong></summary>
+### Pi
 
-Plugins run in Work mode and in Codex inside the ChatGPT desktop app — not in Chat mode, the IDE extension, or mobile. Skills activate per chat.
-
-### Install (Work mode / Codex)
-
-1. Register the marketplace once from a terminal: `codex plugin marketplace add astrofoundry/talk-normal`.
-2. In the app, select **Codex** (or switch to Work mode), and open **Plugins**.
-3. Select the `talk-normal` marketplace in the Plugins Directory and install **talk-normal**.
-
-Type `@` in the composer and select the talk-normal skill, or ask for it by name. Uninstall from the **Installed** row of the Plugins Directory.
-
-### Chat mode
-
-Chat mode loads no plugins and no skills. The alternative is ChatGPT's custom-instructions field (Settings → Personalization): paste [the instructions block](#the-instructions-block) there, and it applies to your chats until you remove it.
-
-</details>
-
-<details>
-<summary><strong>Gemini CLI</strong></summary>
-
-The extension route is on by default: the extension loads `GEMINI.md`, which imports the full skill, so the rules apply from message one. The command route is the per-session alternative.
-
-### Install (extension, on by default)
-
-```bash
-gemini extensions install https://github.com/astrofoundry/talk-normal
-```
-
-`git` must be installed.
-
-### Install (command, per session)
-
-```bash
-mkdir -p ~/.gemini/commands
-curl -fsSL https://raw.githubusercontent.com/astrofoundry/talk-normal/main/skills/talk-normal/agents/gemini.toml \
-  -o ~/.gemini/commands/talk-normal.toml
-```
-
-Start a new session and type `/talk-normal` when you want the rules.
-
-### Verify
-
-```bash
-gemini extensions list          # extension route
-ls ~/.gemini/commands           # command route: talk-normal.toml present
-```
-
-### Update
-
-```bash
-gemini extensions update talk-normal    # extension route
-# command route: re-run the curl above
-```
-
-### Uninstall
-
-```bash
-gemini extensions uninstall talk-normal    # extension route
-rm ~/.gemini/commands/talk-normal.toml     # command route
-```
-
-</details>
-
-<details>
-<summary><strong>Qwen Code</strong></summary>
-
-Qwen loads plugin skills on invocation. One command per session.
-
-### Install
-
-```bash
-qwen extensions install astrofoundry/talk-normal
-```
-
-Type `/talk-normal` at the start of a session.
-
-### Verify
-
-```bash
-qwen extensions list
-```
-
-Then start a new session, run `/skills`, and check that `talk-normal` appears.
-
-### Update
-
-```bash
-qwen extensions update talk-normal
-```
-
-### Uninstall
-
-```bash
-qwen extensions uninstall talk-normal
-```
-
-</details>
-
-<details>
-<summary><strong>Kimi Code CLI</strong></summary>
-
-Kimi loads plugin skills on invocation. One command per session.
-
-### Install
-
-Start a Kimi Code session, then:
-
-1. Run `/plugins`.
-2. Choose **Custom**.
-3. Paste `https://github.com/astrofoundry/talk-normal` and press `Enter`.
-4. Choose **Trust and install**.
-
-Type `/skill:talk-normal` at the start of a session.
-
-### Update
-
-`/plugins` in a Kimi Code session, cursor to **Talk Normal**, press `R`.
-
-### Uninstall
-
-`/plugins` in a Kimi Code session, cursor to **Talk Normal**, press `D`.
-
-</details>
-
-<details>
-<summary><strong>Pi</strong></summary>
-
-Pi reads this repository as a native package, and the mode is on by default: the extension injects the ruleset at every new, resumed, forked, or reloaded session.
-
-### Install
+Pi reads this repository as a native package, and the mode is on by default: the extension injects the ruleset at every new, resumed, forked, or reloaded session, and injects it again when compaction drops it.
 
 ```bash
 pi install https://github.com/astrofoundry/talk-normal
 ```
 
-The footer shows `● TALK NORMAL` while the package is installed. The extension injects the ruleset into the conversation once — not on every request — and injects it again when compaction drops it.
+The footer shows `● TALK NORMAL` while the package is installed. `pi list` verifies; `pi update --extensions` updates. Turn it off by removing the package: run `pi list`, copy the talk-normal source string, then `pi remove <source>`. The Agent Skills command stays available as an alias: `/skill:talk-normal`.
 
-### Turn it off
+### Other harnesses
 
-Remove the package (see Uninstall below).
+Each of these loads the skill from this repository; activation is per session unless noted.
 
-### Verify
-
-```bash
-pi list
-```
-
-Check that the package is listed and that `● TALK NORMAL` appears in the footer of a new session.
-
-### Update
+**Gemini CLI** — the extension route is on by default (the extension loads `GEMINI.md`, which imports the full skill):
 
 ```bash
-pi update --extensions
+gemini extensions install https://github.com/astrofoundry/talk-normal
 ```
 
-Or update this package only: run `pi list`, copy the talk-normal source string, then `pi update --extension <source>`.
+For a per-session command instead, copy [gemini.toml](skills/talk-normal/agents/gemini.toml) to `~/.gemini/commands/talk-normal.toml` and type `/talk-normal`. Uninstall: `gemini extensions uninstall talk-normal` or delete the command file.
 
-### Uninstall
+**Qwen Code** — `qwen extensions install astrofoundry/talk-normal`, then `/talk-normal` at the start of a session. Uninstall: `qwen extensions uninstall talk-normal`.
 
-Run `pi list`, copy the talk-normal source string, then:
+**Kimi Code CLI** — run `/plugins`, choose **Custom**, paste `https://github.com/astrofoundry/talk-normal`, and trust. Then `/skill:talk-normal` per session.
 
-```bash
-pi remove <source>
-```
+**GitHub Copilot** — `npx skills add astrofoundry/talk-normal -a github-copilot` (add `-g` for all projects), then `/talk-normal` per chat.
 
-</details>
+**Zed** — Agent Panel → Skills manager → **Create skill from URL** with `https://github.com/astrofoundry/talk-normal/blob/main/skills/talk-normal/SKILL.md`, then `/talk-normal` per chat.
 
-<details>
-<summary><strong>GitHub Copilot (VS Code and Copilot CLI)</strong></summary>
+**Cursor, OpenCode, and any other agent-skills harness** — `npx skills add astrofoundry/talk-normal` (add `-a cursor` or your agent), then `/talk-normal` per chat. Without the CLI, copy `skills/talk-normal/` into the directory your agent scans.
 
-Copilot reads Agent Skills natively and loads them on invocation. One command per session.
+### Chat apps
 
-### Install
+Chat surfaces have no plugin layer. The always-on route is a persistent instructions field; the skill route uploads the same `SKILL.md` the plugin ships.
 
-```bash
-npx skills add astrofoundry/talk-normal -a github-copilot        # this project
-npx skills add astrofoundry/talk-normal -a github-copilot -g     # all projects
-```
+**claude.ai chat (web and the Claude desktop Chat tab)**
 
-Without the CLI, copy the skill folder into any directory Copilot scans:
+- Always on: open **Settings → Profile**, find **Instructions for Claude**, and paste [the instructions block](#the-instructions-block). It applies to every chat on the account; remove it to turn it off.
+- The skill (Pro/Max/Team/Enterprise): download `talk-normal-skill.zip` from the [latest release](https://github.com/astrofoundry/talk-normal/releases/latest), open **Settings** and go to the **Skills** area (current app versions place it under **Customize**), enable prerequisites the page asks for, upload the ZIP, and toggle the skill on. Claude applies it when a chat matches its description, or when you ask for it by name — the instructions block remains the only guaranteed always-on.
 
-```bash
-git clone https://github.com/astrofoundry/talk-normal
-mkdir -p ~/.copilot/skills
-cp -R talk-normal/skills/talk-normal ~/.copilot/skills/
-```
+**ChatGPT Chat mode**
 
-Type `/talk-normal` at the start of a chat.
-
-### Verify
-
-Type `/` in the chat input and check that `talk-normal` appears. Or:
-
-```bash
-npx skills list
-```
-
-### Update
-
-```bash
-npx skills update talk-normal
-```
-
-### Uninstall
-
-```bash
-npx skills remove talk-normal
-```
-
-</details>
-
-<details>
-<summary><strong>Zed</strong></summary>
-
-Zed's Agent reads Agent Skills natively and loads them on invocation. One command per chat.
-
-### Install
-
-In the Agent Panel, open the Skills manager and choose **Create skill from URL**, then paste:
-
-```
-https://github.com/astrofoundry/talk-normal/blob/main/skills/talk-normal/SKILL.md
-```
-
-Save it in **User** scope for every project, or **Project** scope for one. Then type `/talk-normal` in the Agent Panel.
-
-Or clone and copy:
-
-```bash
-git clone https://github.com/astrofoundry/talk-normal
-cp -R talk-normal/skills/talk-normal ~/.config/zed/skills/
-```
-
-### Verify
-
-Open the Skills manager and check that `talk-normal` is listed.
-
-### Update
-
-Re-import from the same URL, or re-copy the folder after `git pull`.
-
-### Uninstall
-
-Remove `talk-normal` from the Skills manager, or delete `~/.config/zed/skills/talk-normal`.
-
-</details>
-
-<details>
-<summary><strong>Cursor, OpenCode, and any other agent-skills harness</strong></summary>
-
-These harnesses read Agent Skills and load them on invocation. One command per chat. Swap `-a <agent>` for yours.
-
-### Install
-
-```bash
-npx skills add astrofoundry/talk-normal                  # this workspace
-npx skills add astrofoundry/talk-normal -g               # all projects
-npx skills add astrofoundry/talk-normal -a cursor -y     # one agent only
-npx skills add astrofoundry/talk-normal -a opencode -y
-```
-
-New agent chat, type `/talk-normal`.
-
-Without the CLI, copy the skill folder into whatever path your agent scans:
-
-```bash
-git clone https://github.com/astrofoundry/talk-normal
-mkdir -p ~/.cursor/skills     # Cursor. Use .agents/skills for OpenCode, or your agent's own path
-cp -R talk-normal/skills/talk-normal ~/.cursor/skills/
-```
-
-### Verify
-
-```bash
-npx skills list
-npx skills ls -g    # if installed globally
-```
-
-### Update
-
-```bash
-npx skills update talk-normal
-```
-
-### Uninstall
-
-```bash
-npx skills remove talk-normal
-```
-
-</details>
+Chat mode loads no plugins and no skills. Paste [the instructions block](#the-instructions-block) into ChatGPT's custom-instructions field (Settings → Personalization); it applies to your chats until you remove it. Work mode and the Codex surface install the real plugin — see [Codex](#codex).
 
 ## The instructions block
 
