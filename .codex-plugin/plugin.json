@@ -31,6 +31,8 @@
     "defaultPrompt": [
       "Use talk-normal for this task.",
       "Rewrite this answer in plain, unambiguous, action-first English."
-    ]
+    ],
+    "composerIcon": "./assets/talk-normal.jpg",
+    "logo": "./assets/talk-normal.jpg"
   }
 }
