@@ -84,6 +84,8 @@ Claude Code then checks for updates in the background after each session starts.
 
 The plugin ships `statusline/badge.mjs`: it prints a green `[TALK-NORMAL:<installed version>]`. The block below runs it only while the plugin is enabled, so a disabled plugin shows no badge — the absence is the off state.
 
+<img src="assets/statusline.png" alt="Claude Code statusline with the talk-normal badge" width="620" />
+
 Add this block to your own statusline script (the one `statusLine.command` in settings.json points at), anywhere after it resolves `$proj` from the workspace JSON:
 
 ```bash
