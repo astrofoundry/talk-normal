@@ -17,6 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Validate tag matches version
         run: |
@@ -40,7 +42,10 @@ jobs:
         run: node scripts/check.mjs
 
       - name: Package skill for claude.ai upload
-        run: (cd skills && zip -r ../talk-normal-skill.zip talk-normal)
+        run: |
+          cp -R skills/talk-normal "$RUNNER_TEMP/talk-normal"
+          sed -i '/^disable-model-invocation:/d' "$RUNNER_TEMP/talk-normal/SKILL.md"
+          (cd "$RUNNER_TEMP" && zip -r "$GITHUB_WORKSPACE/talk-normal-skill.zip" talk-normal)
 
       - name: Create GitHub Release
         env:

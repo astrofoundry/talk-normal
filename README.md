@@ -62,7 +62,7 @@ The rules apply from the first message of every new session. No further step.
 claude plugin disable talk-normal
 ```
 
-Or uninstall below. Re-invoking mid-session: `/talk-normal:talk-normal` (autocomplete completes it from `/talk`).
+Or uninstall below. Both apply to new sessions — a session that already loaded the rules keeps them until it ends.
 
 ### Verify
 
@@ -107,22 +107,22 @@ Claude Code then checks for updates in the background after each session starts.
 
 The plugin ships `statusline/badge.mjs`: it prints a green `[TALK-NORMAL:<installed version>]`. The block below runs it only while the plugin is enabled, so a disabled plugin shows no badge — the absence is the off state.
 
-Add this block to your own statusline script (the one `statusLine.command` in settings.json points at), anywhere after it captures stdin into `$input` and resolves `$proj` from the workspace JSON:
+Add this block to your own statusline script (the one `statusLine.command` in settings.json points at), anywhere after it resolves `$proj` from the workspace JSON:
 
 ```bash
 tn=""
 for f in "$HOME/.claude/settings.json" "$proj/.claude/settings.json" "$proj/.claude/settings.local.json"; do
   [ -f "$f" ] || continue
-  v=$(jq -r '.enabledPlugins["talk-normal@astrofoundry"] // empty' "$f" 2>/dev/null)
+  v=$(jq -r '(.enabledPlugins // {}) | if has("talk-normal@astrofoundry") then .["talk-normal@astrofoundry"] | tostring else empty end' "$f" 2>/dev/null)
   [ -n "$v" ] && tn=$v
 done
 if [ "$tn" = "true" ]; then
-  b=$(ls -d "$HOME"/.claude/plugins/cache/astrofoundry/talk-normal/*/statusline/badge.mjs 2>/dev/null | sort -V | tail -1)
-  [ -n "$b" ] && badge=$(printf '%s' "$input" | node "$b" 2>/dev/null) && [ -n "$badge" ] && printf ' %s' "$badge"
+  ip=$(jq -r '.plugins["talk-normal@astrofoundry"][0].installPath // empty' "$HOME/.claude/plugins/installed_plugins.json" 2>/dev/null)
+  [ -n "$ip" ] && badge=$(node "$ip/statusline/badge.mjs" 2>/dev/null) && [ -n "$badge" ] && printf ' %s' "$badge"
 fi
 ```
 
-The `enabledPlugins` gate makes the badge disappear immediately when you disable the plugin. If you installed through the direct route, replace `astrofoundry` with `talk-normal` in both the plugin key and the cache path. If you have no statusline script, see the statusline page in the Claude Code docs for the two-line `statusLine` settings entry that creates one.
+The `enabledPlugins` gate reads the last settings file that mentions the plugin, so a project-level `false` wins over a user-level `true`, and the badge disappears when you disable the plugin. The install path comes from `installed_plugins.json` — the version Claude Code actually installed, not the newest directory in the cache. If you installed through the direct route, replace `astrofoundry` with `talk-normal` in the plugin key. If you have no statusline script, see the statusline page in the Claude Code docs for the two-line `statusLine` settings entry that creates one.
 
 </details>
 
@@ -513,13 +513,15 @@ Chat surfaces without a plugin layer (claude.ai chat, ChatGPT Chat mode) use thi
 ```markdown
 Write the way a competent engineer talks to a colleague whose time is short.
 
-Say it plainly: one meaning per word, one verb per action, no synonym rotation. Prefer everyday verbs (use, make sure, check, start, stop, show, fix, change, remove, need). Put the actor in every sentence; simple tenses only. Sentences stay under 20 words in instructions and 25 in descriptions, one instruction each, articles kept. Rewrite multi-word nouns longer than three words. One topic per paragraph, six sentences maximum. Lead warnings with the danger.
+Say it plainly: one meaning per word, one verb per action, no synonym rotation. Prefer everyday verbs (use, make sure, check, start, stop, show, fix, change, remove, need). Use the active voice and name the actor; simple tenses only. Sentences stay under 20 words in instructions and 25 in descriptions, one instruction each, articles kept — never compress words away. Rewrite multi-word nouns longer than three words. One topic per paragraph, six sentences maximum. Lead warnings with the danger.
 
-Say it in a useful order: the first line carries the point; multi-step work becomes a numbered list of bounded actions; state where things stand every turn; close with one next move; errors get a location, a cause, and a fix; results are shown concretely; estimates come in units; lists cap at five items; tangents get one sentence at the end; no warm-up, no recap, no sign-off.
+Say it in a useful order: the first line carries the point; multi-step work becomes a numbered list of bounded actions; state where things stand every turn; close with one next move doable in under two minutes; errors get a location, a cause, and a fix; results are shown concretely; estimates come in units; lists cap at five items; tangents get one sentence at the end; no warm-up, no recap, no sign-off.
 
-Banned: delve, leverage, seamless, robust/powerful/comprehensive as decoration, "it's worth noting", journey/landscape/ecosystem as metaphors, padding adverbs (basically, essentially, actually, simply, just), idioms. Quotes and code pass through exactly. Precision outranks style.
+Banned in your own prose: delve, dive into, deep dive, leverage, seamless, seamlessly, robust/powerful/comprehensive as decoration, "it's worth noting", "great question", "as an AI", journey/landscape/ecosystem as metaphors, game-changing, cutting-edge, state-of-the-art, padding adverbs (basically, essentially, actually, simply, just), idioms and figures of speech. Code, commands, paths, identifiers, error text, and quotes pass through exactly. Precision outranks style: never drop a fact, a number, or a condition to shorten a sentence.
 
-Bend only here: explanations may run long; a destructive step gets a full-sentence warning and a pause; an ambiguous request earns one short question.
+When you send work to a subagent, include these rules in its prompt; rewrite its prose (never its code or errors) when you relay it.
+
+Bend only here: explanations and walkthroughs may run long, and the shape stays; a destructive step gets a full-sentence warning and a pause for confirmation; after three failed fixes, stop and name the doubtful assumption; an ambiguous request earns one short question; the harness's own rules always win — keep the spirit inside them.
 ```
 
 ## Customize

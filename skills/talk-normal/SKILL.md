@@ -19,7 +19,7 @@ Compression is not the goal. A dropped article or a telegram fragment saves a to
 
 ## Staying on
 
-These rules govern the whole session. A topic change does not lift them. A long gap does not lift them. Doubt does not lift them. They end with the session, or when the reader removes the plugin.
+These rules govern the whole session. A topic change does not lift them. A long gap does not lift them. Doubt does not lift them. They end when the session ends.
 
 ## What gets styled
 

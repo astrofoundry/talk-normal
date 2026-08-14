@@ -7,16 +7,9 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { MANIFESTS } from "./manifests.mjs";
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
-const MANIFESTS = [
-  ".claude-plugin/plugin.json",
-  ".codex-plugin/plugin.json",
-  "gemini-extension.json",
-  "qwen-extension.json",
-  "kimi.plugin.json",
-  "package.json",
-];
 const OTHER_JSON = [".claude-plugin/marketplace.json", "hooks/hooks.json", "hooks/codex.json", "tsconfig.json"];
 
 let failures = 0;
@@ -79,6 +72,53 @@ if (!canonical.equals(cursorCopy)) {
   fail(".cursor/skills/talk-normal/SKILL.md differs from skills/talk-normal/SKILL.md");
 } else {
   ok("cursor skill copy in sync");
+}
+
+{
+  // The condensed renderings are hand-written; this token list keeps their
+  // load-bearing content from drifting away from the canonical ruleset.
+  const tokens = [
+    "one meaning per word",
+    "active voice",
+    "20 words",
+    "25",
+    "one instruction",
+    "articles",
+    "three words",
+    "six sentences",
+    "warnings with the danger",
+    "numbered list",
+    "next move",
+    "five items",
+    "no warm-up",
+    "delve",
+    "leverage",
+    "seamless",
+    "it's worth noting",
+    "game-chang",
+    "basically",
+    "idioms",
+    "pass through exactly",
+    "subagent",
+    "destructive",
+    "three failed fixes",
+    "ambiguous",
+  ];
+  const renderings = {
+    "gemini.toml": fs.readFileSync(path.join(ROOT, "skills/talk-normal/agents/gemini.toml"), "utf8"),
+    "README instructions block": (fs.readFileSync(path.join(ROOT, "README.md"), "utf8").split("## The instructions block")[1] ?? "").split("\n## ")[0],
+  };
+  let drift = 0;
+  for (const [name, text] of Object.entries(renderings)) {
+    const lower = text.toLowerCase();
+    for (const token of tokens) {
+      if (!lower.includes(token.toLowerCase())) {
+        drift += 1;
+        fail(`${name} drifted: missing "${token}"`);
+      }
+    }
+  }
+  if (drift === 0) ok(`condensed renderings carry all ${tokens.length} anchor tokens`);
 }
 
 {
