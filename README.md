@@ -12,10 +12,10 @@ Agent output fails in two independent ways. The *shape* fails — the answer com
 
 talk-normal fixes both at once:
 
-- **Language rules**, adapted from ASD-STE100 — the controlled English the aerospace industry wrote so a maintenance instruction cannot be misread. One meaning per word. Active voice. Sentences stay under 20–25 words, and the articles stay: this is the opposite of telegram-style compression, because dropped words create ambiguity.
+- **Language rules**, adapted from ASD-STE100 — the controlled English the aerospace industry wrote so a maintenance instruction cannot be misread. One meaning per word. Active voice. Sentences stay at 20–25 words at most, and the articles stay: this is the opposite of telegram-style compression, because dropped words create ambiguity.
 - **Delivery rules** — the point arrives in line one, work becomes numbered steps, progress is restated every turn, and the message stops when its job is done.
 
-The rules follow the work: a prompt written for a subagent carries the ruleset, and the agent rewrites relayed subagent prose to conform while code and errors pass through unchanged.
+The rules follow the work. A prompt written for a subagent carries the ruleset. The agent rewrites relayed subagent prose; code, data, and errors pass through unchanged.
 
 ## Before / after
 
@@ -31,6 +31,22 @@ With it:
 > 2. Run `pnpm test queue`.
 >
 > Next: paste the test output if anything still fails.
+
+A status update, without the skill:
+
+> Quick update! I've been diving into the deployment issue and made some great progress. I've now gone ahead and refactored the config loading, which should hopefully make things more robust going forward. There are still a couple of things I'd like to polish, but we're definitely getting there! Let me know how you'd like to proceed.
+
+With it:
+
+> Config loading is fixed; two of three deploy steps pass. The `staging` step still fails because the bucket name is hardcoded. Next: I move the name to `deploy.env` — about ten minutes.
+
+A design question, without the skill:
+
+> That's a great question! There are actually several ways to approach caching here, and the best choice really depends on your specific use case. You could leverage Redis, or alternatively an in-memory solution might be a seamless fit. Each has trade-offs worth exploring further. Happy to dive deeper into any of these!
+
+With it:
+
+> Use the in-memory cache. Your data fits in 40 MB and one process serves all traffic, so Redis would add a network hop and a service to run. Choose Redis when a second app server appears.
 
 ## Install
 
@@ -51,11 +67,11 @@ claude plugin install talk-normal@astrofoundry
 
 Or directly from this repository: `claude plugin marketplace add astrofoundry/talk-normal`, then `claude plugin install talk-normal@talk-normal`.
 
-The rules apply from the first message of every new session. `claude plugin list` verifies; `claude plugin marketplace update astrofoundry` updates.
+The rules apply from the first message of every new session. `claude plugin list` checks the install; `claude plugin marketplace update astrofoundry` updates it.
 
 Turn it off with `claude plugin disable talk-normal` or `claude plugin uninstall talk-normal` — both apply to new sessions; a session that already loaded the rules keeps them until it ends. Re-invoke mid-session with `/talk-normal:talk-normal` (autocomplete completes it from `/talk`).
 
-The **Claude desktop app's Code tab** runs the same engine and configuration: install once with the commands above and local or SSH Code sessions load the rules identically. Cloud sessions have no plugin browser — declare the plugin in the project's `.claude/settings.json` under `enabledPlugins` — and WSL sessions do not load plugins. The Chat tab is a chat app; see the Chat apps section.
+The **Claude desktop app's Code tab** runs the same engine and configuration. Install once with the commands above; local and SSH Code sessions load the rules identically. Cloud sessions have no plugin browser — declare the plugin in the project's `.claude/settings.json` under `enabledPlugins` — and WSL sessions do not load plugins. The Chat tab is a chat app; see the Chat apps section.
 
 <details>
 <summary><strong>Auto-update (optional)</strong></summary>
@@ -102,7 +118,7 @@ if [ "$tn" = "true" ]; then
 fi
 ```
 
-The `enabledPlugins` gate reads the last settings file that mentions the plugin, so a project-level `false` wins over a user-level `true`, and the badge disappears when you disable the plugin. The install path comes from `installed_plugins.json` — the version Claude Code actually installed, not the newest directory in the cache. If you installed through the direct route, replace `astrofoundry` with `talk-normal` in the plugin key. If you have no statusline script, see the statusline page in the Claude Code docs for the two-line `statusLine` settings entry that creates one.
+The `enabledPlugins` gate reads the last settings file that mentions the plugin. A project-level `false` wins over a user-level `true`, and the badge disappears when you disable the plugin. The install path comes from `installed_plugins.json` — the version Claude Code installed, not the newest directory in the cache. If you installed through the direct route, replace `astrofoundry` with `talk-normal` in the plugin key. If you have no statusline script, see the statusline page in the Claude Code docs for the two-line `statusLine` settings entry that creates one.
 
 </details>
 
@@ -111,13 +127,13 @@ The `enabledPlugins` gate reads the last settings file that mentions the plugin,
 <details>
 <summary><strong>Codex</strong></summary>
 
-On by default after a one-time step: the plugin bundles a `SessionStart` hook that loads the ruleset into every session, and Codex requires you to trust that hook once.
+On by default after a one-time step: the plugin bundles a `SessionStart` hook that loads the ruleset into every session, and Codex needs you to trust that hook once.
 
 1. Register the marketplace: `codex plugin marketplace add astrofoundry/talk-normal`.
 2. Start `codex` and open the plugin browser — the **Plugins** screen, listed in the `/` command menu. Select the `talk-normal` marketplace and install **talk-normal**. There is no CLI install command; installation goes through this screen.
 3. Run `/hooks`, review the talk-normal `SessionStart` hook, and trust it. Codex skips untrusted plugin hooks by design.
 
-From the next session, the rules load at start — the footer shows "Loading talk-normal ruleset" while the hook runs. Node.js must be on your PATH. `codex plugin marketplace list` verifies; `codex plugin marketplace upgrade talk-normal` updates.
+From the next session, the rules load at start — the footer shows "Loading talk-normal ruleset" while the hook runs. Node.js must be on your PATH. `codex plugin marketplace list` checks the marketplace; `codex plugin marketplace upgrade talk-normal` updates it.
 
 Turn it off by untrusting the hook in `/hooks`, or remove the plugin in the plugin browser and run `codex plugin marketplace remove talk-normal`. Without the trusted hook, the plugin still works per session: type `$talk-normal` in the composer. Codex does not activate the skill on its own.
 
@@ -134,7 +150,7 @@ mkdir -p ~/.codex/skills
 cp -R talk-normal/skills/talk-normal ~/.codex/skills/
 ```
 
-Codex detects the new skill automatically; restart it if `$talk-normal` does not appear. This route is per-session invocation — the plugin's always-on hook does not travel with a standalone skill. To rebuild always-on, point a user-level `SessionStart` hook in `~/.codex/hooks.json` at the copied skill, and trust it in `/hooks`; managed policy has the final word on non-managed hooks.
+Codex detects the new skill automatically; restart it if `$talk-normal` does not appear. This route is per-session invocation — the plugin's always-on hook does not travel with a standalone skill. To rebuild always-on, point a user-level `SessionStart` hook in `~/.codex/hooks.json` at the copied skill, and trust it in `/hooks`; managed policy decides whether non-managed hooks run.
 
 </details>
 
@@ -149,7 +165,7 @@ Pi reads this repository as a native package, and the mode is on by default: the
 pi install https://github.com/astrofoundry/talk-normal
 ```
 
-The footer shows `● TALK NORMAL` while the package is installed. `pi list` verifies; `pi update --extensions` updates. Turn it off by removing the package: run `pi list`, copy the talk-normal source string, then `pi remove <source>`. The Agent Skills command stays available as an alias: `/skill:talk-normal`.
+The footer shows `● TALK NORMAL` while the package is installed. `pi list` checks the install; `pi update --extensions` updates it. Turn it off by removing the package: run `pi list`, copy the talk-normal source string, then `pi remove <source>`. The Agent Skills command stays available as an alias: `/skill:talk-normal`.
 
 </details>
 
@@ -174,7 +190,7 @@ For a per-session command instead, copy [gemini.toml](skills/talk-normal/agents/
 
 **Zed** — Agent Panel → Skills manager → **Create skill from URL** with `https://github.com/astrofoundry/talk-normal/blob/main/skills/talk-normal/SKILL.md`, then `/talk-normal` per chat.
 
-**Cursor, OpenCode, and any other agent-skills harness** — `npx skills add astrofoundry/talk-normal` (add `-a cursor` or your agent), then `/talk-normal` per chat. Without the CLI, copy `skills/talk-normal/` into the directory your agent scans.
+**Cursor, OpenCode, and any other agent-skills harness** — run `npx skills add astrofoundry/talk-normal` (add `-a cursor` or your agent). Type `/talk-normal` per chat. Without the CLI, copy `skills/talk-normal/` into the directory your agent scans.
 
 </details>
 
@@ -201,15 +217,25 @@ Chat surfaces without a plugin layer (claude.ai chat, ChatGPT Chat mode) use thi
 ```markdown
 Write the way a competent engineer talks to a colleague whose time is short.
 
-Say it plainly: one meaning per word, one verb per action, no synonym rotation. Prefer everyday verbs (use, make sure, check, start, stop, show, fix, change, remove, need). Use the active voice and name the actor; simple tenses only. Sentences stay under 20 words in instructions and 25 in descriptions, one instruction each, articles kept — never compress words away. Rewrite multi-word nouns longer than three words. One topic per paragraph, six sentences maximum. Lead warnings with the danger.
+Say it plainly:
+- Use one meaning per word and one verb per action; never rotate synonyms. Prefer everyday verbs (use, make sure, check, start, stop, show, fix, change, remove, need).
+- Use the active voice and name the actor. Use simple tenses only.
+- Use at most 20 words per instruction sentence and at most 25 per description sentence. One instruction per sentence. Keep the articles; never compress words away.
+- Rewrite multi-word nouns longer than three words. One topic per paragraph, six sentences maximum. Lead warnings with the danger.
 
-Say it in a useful order: the first line carries the point; multi-step work becomes a numbered list of bounded actions; state where things stand every turn; close with one next move doable in under two minutes; errors get a location, a cause, and a fix; results are shown concretely; estimates come in units; lists cap at five items; tangents get one sentence at the end; no warm-up, no recap, no sign-off.
+Say it in a useful order:
+1. The first line carries the point.
+2. Multi-step work becomes a numbered list of bounded actions.
+3. State where things stand every turn.
+4. Close with one next move the reader can do in under two minutes.
+5. Errors get a location, a cause, and a fix.
+6. Show results concretely. Give estimates in units. Cap lists at five items. Tangents get one sentence at the end. No warm-up, no recap, no sign-off.
 
-Banned in your own prose: delve, dive into, deep dive, leverage, seamless, seamlessly, robust/powerful/comprehensive as decoration, "it's worth noting", "great question", "as an AI", journey/landscape/ecosystem as metaphors, game-changing, cutting-edge, state-of-the-art, padding adverbs (basically, essentially, actually, simply, just), idioms and figures of speech. Code, commands, paths, identifiers, error text, and quotes pass through exactly. Precision outranks style: never drop a fact, a number, or a condition to shorten a sentence.
+Never write these in your own prose: delve, dive into, deep dive, leverage, seamless, seamlessly, robust/powerful/comprehensive as decoration for code or tools, "it's worth noting", "great question", "as an AI", journey/landscape/ecosystem as metaphors, game-changing, cutting-edge, state-of-the-art, padding adverbs (basically, essentially, actually, simply, just), idioms and figures of speech. Code, commands, paths, identifiers, data, error text, and quotes pass through exactly. Precision outranks style: never drop a fact, a number, or a condition to make a sentence shorter.
 
-When you send work to a subagent, include these rules in its prompt; rewrite its prose (never its code or errors) when you relay it.
+When you send work to a subagent, include these rules in its prompt. Rewrite the prose of relayed subagent output — never its code, data, or errors.
 
-Bend only here: explanations and walkthroughs may run long, and the shape stays; a destructive step gets a full-sentence warning and a pause for confirmation; after three failed fixes, stop and name the doubtful assumption; an ambiguous request earns one short question; the harness's own rules always win — keep the spirit inside them.
+Bend only here: explanations and walkthroughs may run long, and the shape stays. A destructive step gets a full-sentence warning and a pause for confirmation — safety outranks every other rule. After three failed fixes, stop, name the doubtful assumption, and ask one diagnostic question. An ambiguous request earns one short question. The harness's own rules win everywhere except safety; keep the spirit of these rules inside them.
 ```
 
 ## Customize
