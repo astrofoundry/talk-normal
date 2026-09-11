@@ -16,7 +16,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
 
@@ -29,8 +29,8 @@ jobs:
             exit 1
           fi
 
-      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: lts/*
           cache: pnpm
@@ -41,7 +41,7 @@ jobs:
       - name: Run checks
         run: node scripts/check.mjs
 
-      - name: Package OpenAI plugin for manual submission
+      - name: Package OpenAI plugin
         run: |
           zip -q "$RUNNER_TEMP/talk-normal-openai.zip" \
             .codex-plugin/plugin.json \
@@ -60,7 +60,6 @@ jobs:
           node --input-type=module - "$stage/talk-normal/SKILL.md" <<'NODE'
           import fs from 'node:fs';
           const skill = fs.readFileSync('skills/talk-normal/SKILL.md', 'utf8');
-          // Let Claude select the uploaded skill by relevance.
           const upload = skill.replace(/^---\r?\n[\s\S]*?\r?\n---/, frontmatter =>
             frontmatter.replace(/^disable-model-invocation: true\r?\n/m, ''));
           fs.writeFileSync(process.argv[2], upload);

@@ -78,11 +78,15 @@ if (!frontmatter || !canonical.slice(frontmatter[0].length).trim()) {
 
 const body = canonical.slice(frontmatter[0].length).trim();
 const expectedPrompt = `TALK-NORMAL ACTIVE. Apply the ruleset below to every response.\n\n${body}\n`;
+if (expectedPrompt.length > 5000) {
+  fail(`instructions block is ${expectedPrompt.length} characters; the paste limit is 5000`);
+} else {
+  ok(`instructions block fits the paste limit (${expectedPrompt.length}/5000 characters)`);
+}
 const escaped = `${expectedPrompt}\n{{args}}\n`.replaceAll("\\", "\\\\").replaceAll('"', '\\"');
 const copies = new Map([
   [".cursor/skills/talk-normal/SKILL.md", canonical],
   ["skills/talk-normal/agents/gemini.toml", [
-    "# Generated from skills/talk-normal/SKILL.md by pnpm check --sync.",
     'description = "Plain, unambiguous, action-first output."',
     "",
     `prompt = """\n${escaped}"""`,
@@ -192,8 +196,6 @@ try {
     ok("claude plugin validate --strict (marketplace manifest)");
   }
 
-  // `claude plugin validate` only checks marketplace.json when both manifests
-  // exist, so validate the plugin manifest on a copy without marketplace.json.
   const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "talk-normal-plugin-"));
   try {
     fs.cpSync(ROOT, scratch, {

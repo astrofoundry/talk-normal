@@ -1,7 +1,3 @@
-// Release: run checks, bump the version in every manifest, commit, tag, push,
-// and pin the agent-skills marketplace to the new tag.
-// Usage: node scripts/release.mjs <patch|minor|major>
-
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";

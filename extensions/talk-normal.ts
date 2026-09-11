@@ -1,10 +1,3 @@
-// Pi extension: talk-normal as an always-on output mode. Installing the
-// package turns the rules on; removing it turns them off.
-//
-// The ruleset enters the conversation as a single hidden custom message.
-// Compaction drops that message from the live context, so the extension
-// injects it again when needed.
-
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -27,7 +20,6 @@ function readRules(): string {
   return body;
 }
 
-/** Whether the rules message survives in the context the model actually sees. */
 function rulesLive(ctx: ExtensionContext): boolean {
   for (const entry of ctx.sessionManager.buildContextEntries()) {
     if (entry.type === "custom_message" && entry.customType === RULES_ENTRY) return true;
