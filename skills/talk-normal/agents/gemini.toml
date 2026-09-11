@@ -83,9 +83,5 @@ Remove banned words and needless sentences. Name known actors, use active voice,
 - Write \"the config for the queue that retries failed webhooks\".
 - The cache serves repeat lookups. Median response drops from 130 ms to 45 ms.
 
-## Attribution
-
-Delivery adapts [i-have-adhd](https://github.com/ayghri/i-have-adhd) by Ayoub G. (MIT). Language adapts ASD-STE100 Simplified Technical English, Issue 9. ASD, Brussels, holds its copyright and trademark. This is an independent adaptation, not certified STE.
-
 {{args}}
 """

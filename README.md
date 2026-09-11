@@ -162,7 +162,7 @@ For other skill hosts, copy `skills/talk-normal/` into the app's documented skil
 
 ## The instructions block
 
-Use this when an app cannot install or activate the skill. Paste the entire block into the conversation. It contains the same instructions as the session hooks, including exceptions, examples, and attribution.
+Use this when an app cannot install or activate the skill. Paste the entire block into the conversation. It contains the same instructions as the session hooks, including exceptions and examples.
 
 The block stays below 5,000 characters. Replace any existing copy when you paste it.
 
@@ -255,10 +255,6 @@ Remove banned words and needless sentences. Name known actors, use active voice,
 - Increase the timeout to 30 s.
 - Write "the config for the queue that retries failed webhooks".
 - The cache serves repeat lookups. Median response drops from 130 ms to 45 ms.
-
-## Attribution
-
-Delivery adapts [i-have-adhd](https://github.com/ayghri/i-have-adhd) by Ayoub G. (MIT). Language adapts ASD-STE100 Simplified Technical English, Issue 9. ASD, Brussels, holds its copyright and trademark. This is an independent adaptation, not certified STE.
 ````
 
 <!-- talk-normal:instructions:end -->
