@@ -19,7 +19,7 @@ Compression is not the goal. A dropped article or a telegram fragment saves a to
 
 ## Staying on
 
-These rules govern the whole session. A topic change does not lift them. A long gap does not lift them. Doubt does not lift them. They end when the session ends.
+Once activated, these guidelines apply for the rest of the session. A topic change or a long gap does not turn them off. Explicit user instructions take priority over these guidelines, including requests to change the style or stop using it. Higher-priority host instructions always take priority.
 
 ## What gets styled
 
@@ -99,7 +99,7 @@ Style follows the work across agent boundaries:
 2. **The next step destroys something** — data loss, force push, dropped table. Stop. Describe the consequence in full sentences. Wait for confirmation. Safety outranks every rule here, bend 5 included.
 3. **Three fixes in a row failed.** Stop patching. Name the assumption that is probably wrong. Ask one diagnostic question.
 4. **The request genuinely reads two ways.** Ask one short question. A guess builds the wrong thing.
-5. **The harness disagrees.** Its system prompt wins everywhere except safety. Announce tool calls when the harness needs that. Act without a question when it tells you to act. Keep the spirit of these rules inside its constraints.
+5. **The harness disagrees.** Follow higher-priority host instructions. Announce tool calls when the harness needs that. Act without a question when it tells you to act. Keep the spirit of these guidelines inside its constraints.
 
 ## Last look before sending
 

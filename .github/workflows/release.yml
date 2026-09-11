@@ -41,13 +41,44 @@ jobs:
       - name: Run checks
         run: node scripts/check.mjs
 
-      - name: Package skill for claude.ai upload
+      - name: Package OpenAI plugin for manual submission
         run: |
-          cp -R skills/talk-normal "$RUNNER_TEMP/talk-normal"
-          sed -i '/^disable-model-invocation:/d' "$RUNNER_TEMP/talk-normal/SKILL.md"
-          (cd "$RUNNER_TEMP" && zip -r "$GITHUB_WORKSPACE/talk-normal-skill.zip" talk-normal)
+          zip -q "$RUNNER_TEMP/talk-normal-openai.zip" \
+            .codex-plugin/plugin.json \
+            skills/talk-normal/SKILL.md \
+            skills/talk-normal/agents/openai.yaml \
+            hooks/codex.json \
+            hooks/codex-session-start.mjs \
+            assets/talk-normal.jpg \
+            LICENSE
+
+      - name: Package skill for Claude upload
+        run: |
+          stage=$(mktemp -d "$RUNNER_TEMP/talk-normal-claude.XXXXXX")
+          trap 'rm -rf "$stage"' EXIT
+          mkdir "$stage/talk-normal"
+          node --input-type=module - "$stage/talk-normal/SKILL.md" <<'NODE'
+          import fs from 'node:fs';
+          const skill = fs.readFileSync('skills/talk-normal/SKILL.md', 'utf8');
+          // Let Claude select the uploaded skill by relevance.
+          const upload = skill.replace(/^---\r?\n[\s\S]*?\r?\n---/, frontmatter =>
+            frontmatter.replace(/^disable-model-invocation: true\r?\n/m, ''));
+          fs.writeFileSync(process.argv[2], upload);
+          NODE
+          cp LICENSE "$stage/talk-normal/LICENSE"
+          cd "$stage"
+          zip -q "$RUNNER_TEMP/talk-normal-skill.zip" talk-normal/SKILL.md talk-normal/LICENSE
+
+      - name: Export complete instructions for copy and paste
+        run: |
+          node hooks/codex-session-start.mjs > "$RUNNER_TEMP/talk-normal-instructions.md"
+          test -s "$RUNNER_TEMP/talk-normal-instructions.md"
 
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" --generate-notes --verify-tag talk-normal-skill.zip
+        run: |
+          gh release create "$GITHUB_REF_NAME" --generate-notes --verify-tag \
+            "$RUNNER_TEMP/talk-normal-openai.zip" \
+            "$RUNNER_TEMP/talk-normal-skill.zip" \
+            "$RUNNER_TEMP/talk-normal-instructions.md"

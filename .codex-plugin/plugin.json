@@ -1,7 +1,7 @@
 {
   "name": "talk-normal",
   "version": "0.2.3",
-  "description": "Plain, unambiguous, action-first output for Codex: one word one meaning, active voice, answer first, no slop.",
+  "description": "Plain, unambiguous, action-first output for ChatGPT and Codex: one word one meaning, active voice, answer first, no slop.",
   "author": {
     "name": "Astro Foundry",
     "url": "https://github.com/astrofoundry"
@@ -20,8 +20,8 @@
   "hooks": "./hooks/codex.json",
   "interface": {
     "displayName": "Talk Normal",
-    "shortDescription": "Plain, unambiguous, action-first output",
-    "longDescription": "Constrain Codex responses to plain, unambiguous, action-first English: one word one meaning, active voice, short sentences, numbered steps, no slop.",
+    "shortDescription": "Plain words. Clear answers.",
+    "longDescription": "Apply a consistent writing style in ChatGPT and Codex: plain words, active voice, complete sentences, the answer first, and numbered steps for actions. Select talk-normal to load the full rules for the current conversation. Explicit user requests take priority over these style guidelines. Automatic activation in local Codex sessions needs a trusted session hook; ordinary Chat does not run that hook.",
     "developerName": "Astro Foundry",
     "category": "Productivity",
     "capabilities": [

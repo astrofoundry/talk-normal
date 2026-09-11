@@ -4,24 +4,15 @@
   <img src="assets/talk-normal.jpg" alt="talk-normal" width="320" />
 </p>
 
-A skill that makes your coding agent write like a competent engineer who respects your time: answer first, plain words, whole sentences, nothing decorative.
+A writing skill for AI agents: answer first, plain words, whole sentences.
 
-## Why
-
-Agent output fails in two independent ways. The *shape* fails — the answer comes last, the steps are mixed into prose, and every message ends with "Hope this helps!". And the *language* fails — synonyms rotate mid-explanation, passive voice removes the actor, and "leveraging robust solutions" has no meaning.
-
-talk-normal fixes both at once:
-
-- **Language rules**, adapted from ASD-STE100 — the controlled English the aerospace industry wrote so a maintenance instruction cannot be misread. One meaning per word. Active voice. Sentences stay at 20–25 words at most, and the articles stay: this is the opposite of telegram-style compression, because dropped words create ambiguity.
-- **Delivery rules** — the point arrives in line one, work becomes numbered steps, progress is restated every turn, and the message stops when its job is done.
-
-The rules follow the work. A prompt written for a subagent carries the ruleset. The agent rewrites relayed subagent prose; code, data, and errors pass through unchanged.
+The rules cover word choice, sentence structure, steps, and progress updates. Agents also pass the rules to subagents. Code, commands, and quoted text stay unchanged.
 
 ## Before / after
 
 Without the skill:
 
-> Sure! So looking into this, it seems like the issue you're experiencing might possibly be related to how the retry logic is being handled. There are several factors at play here worth unpacking. One robust approach would be to consider adjusting the backoff configuration, which should hopefully help. Let me know if you'd like me to elaborate on anything!
+> One robust approach would be to consider adjusting the backoff configuration, which should hopefully help.
 
 With it:
 
@@ -29,81 +20,76 @@ With it:
 >
 > 1. In `queue.config.ts:14`, change `RETRY_LIMIT` to `QUEUE_RETRY_LIMIT`.
 > 2. Run `pnpm test queue`.
->
-> Next: paste the test output if anything still fails.
-
-A status update, without the skill:
-
-> Quick update! I've been diving into the deployment issue and made some great progress. I've now gone ahead and refactored the config loading, which should hopefully make things more robust going forward. There are still a couple of things I'd like to polish, but we're definitely getting there! Let me know how you'd like to proceed.
-
-With it:
-
-> Config loading is fixed; two of three deploy steps pass. The `staging` step still fails because the bucket name is hardcoded. Next: I move the name to `deploy.env` — about ten minutes.
-
-A design question, without the skill:
-
-> That's a great question! There are actually several ways to approach caching here, and the best choice really depends on your specific use case. You could leverage Redis, or alternatively an in-memory solution might be a seamless fit. Each has trade-offs worth exploring further. Happy to dive deeper into any of these!
-
-With it:
-
-> Use the in-memory cache. Your data fits in 40 MB and one process serves all traffic, so Redis would add a network hop and a service to run. Choose Redis when a second app server appears.
 
 ## Install
 
-Two activation models, depending on what the harness lets a plugin do:
-
-- **On by default** — Claude Code (terminal and desktop Code tab), Codex CLI after a one-time hook trust, Pi, and Gemini's extension route. The rules apply from the first message of every session; disabling or removing the plugin turns them off.
-- **Per session or per relevance** — chat apps and the smaller skills harnesses. Those surfaces load skills on invocation or by relevance; the [instructions block](#the-instructions-block) is their always-on substitute.
+Every route uses the complete [skill](skills/talk-normal/SKILL.md). Activation depends on the app. Local plugins can load it automatically; chat apps need skill selection.
 
 <details>
-<summary><strong>Claude Code</strong></summary>
+<summary><strong>ChatGPT: web, desktop, iPhone, and Android</strong></summary>
 
-Via the Astro Foundry marketplace:
+**Talk-normal is not in the public directory yet.** OpenAI supports skill plugins across these apps. After publication, install **Talk Normal** from **Plugins**. Select the skill with `@` in each new chat. [OpenAI documentation](https://learn.chatgpt.com/docs/plugins)
+
+The **New Plugin** dialog connects an MCP server. Talk-normal contains instructions and has no server URL. Until publication, use the [complete instructions](#the-instructions-block).
+
+</details>
+
+<details>
+<summary><strong>Codex CLI and Codex in ChatGPT desktop</strong></summary>
+
+1. Run `codex plugin marketplace add astrofoundry/talk-normal`.
+2. Open `/plugins` in Codex CLI, or **Plugins** in the desktop app.
+3. Install talk-normal from that marketplace.
+4. Run `/hooks` in a local Codex session.
+5. Review and trust the talk-normal `SessionStart` hook.
+
+The hook needs Node.js on PATH. It loads the rules at the start of each local session. Without hook trust, invoke `$talk-normal` in Codex or select it through `@` in ChatGPT. [Plugins](https://learn.chatgpt.com/docs/plugins), [hooks](https://learn.chatgpt.com/docs/hooks)
+
+Update with `codex plugin marketplace upgrade talk-normal`. Remove the plugin through **Plugins**. Start a new session after removal.
+
+For a standalone local skill, copy the folder:
+
+```bash
+git clone https://github.com/astrofoundry/talk-normal
+mkdir -p ~/.agents/skills
+cp -R talk-normal/skills/talk-normal ~/.agents/skills/
+```
+
+Invoke this copy with `$talk-normal`. It has no session hook. Managed deployments can restrict skill installation and hooks. [Local skills](https://learn.chatgpt.com/docs/build-skills)
+
+</details>
+
+<details>
+<summary><strong>Claude Code: terminal and desktop Code tab</strong></summary>
 
 ```bash
 claude plugin marketplace add astrofoundry/agent-skills
 claude plugin install talk-normal@astrofoundry
 ```
 
-Or directly from this repository: `claude plugin marketplace add astrofoundry/talk-normal`, then `claude plugin install talk-normal@talk-normal`.
+Or install from this repository:
 
-The rules apply from the first message of every new session. `claude plugin list` checks the install; `claude plugin marketplace update astrofoundry` updates it.
-
-Turn it off with `claude plugin disable talk-normal` or `claude plugin uninstall talk-normal` — both apply to new sessions; a session that already loaded the rules keeps them until it ends. Re-invoke mid-session with `/talk-normal:talk-normal` (autocomplete completes it from `/talk`).
-
-The **Claude desktop app's Code tab** runs the same engine and configuration. Install once with the commands above; local and SSH Code sessions load the rules identically. Cloud sessions have no plugin browser — declare the plugin in the project's `.claude/settings.json` under `enabledPlugins` — and WSL sessions do not load plugins. The Chat tab is a chat app; see the Chat apps section.
-
-<details>
-<summary><strong>Auto-update (optional)</strong></summary>
-
-Third-party marketplaces do not auto-update by default. Two ways to turn it on for this one:
-
-- Open `/plugin`, select the marketplace you added (`astrofoundry` or `talk-normal`), and enable auto-update.
-- Or set it in `~/.claude/settings.json` on your marketplace entry:
-
-```json
-{
-  "extraKnownMarketplaces": {
-    "astrofoundry": {
-      "source": { "source": "github", "repo": "astrofoundry/agent-skills" },
-      "autoUpdate": true
-    }
-  }
-}
+```bash
+claude plugin marketplace add astrofoundry/talk-normal
+claude plugin install talk-normal@talk-normal
 ```
 
-Claude Code then checks for updates in the background after each session starts. When an update arrives, it prompts you to run `/reload-plugins`, which switches skills and hooks to the new version without a restart. Without auto-update, run `claude plugin update talk-normal@astrofoundry` yourself. `claude plugin list` shows the installed version either way.
+The session hook needs Node.js on PATH. It loads the rules automatically. Check the install with `claude plugin list`. Invoke `/talk-normal:talk-normal` to load the rules again.
 
-</details>
+Local and SSH sessions in the desktop Code tab use this installation. Cowork uses account skills instead. Cloud sessions need project-declared plugins. [Desktop documentation](https://code.claude.com/docs/en/desktop)
+
+Update with `claude plugin update talk-normal@astrofoundry`. Use `talk-normal@talk-normal` for the direct repository route. Run `/reload-plugins` to load the update. You can enable marketplace auto-update through `/plugin`.
+
+Disable with `claude plugin disable talk-normal`, or remove with `claude plugin uninstall talk-normal`. Start a new session afterward.
 
 <details>
-<summary><strong>Statusline badge (optional)</strong></summary>
+<summary>Statusline badge (optional)</summary>
 
-The plugin ships `statusline/badge.mjs`: it prints a green `[TALK-NORMAL:<installed version>]`. The block below runs it only while the plugin is enabled, so a disabled plugin shows no badge — the absence is the off state.
+The badge shows the installed version while the plugin is enabled.
 
 <img src="assets/statusline.png" alt="Claude Code statusline with the talk-normal badge" width="620" />
 
-Add this block to your own statusline script (the one `statusLine.command` in settings.json points at), anywhere after it resolves `$proj` from the workspace JSON:
+Add this block to your statusline script after it sets `$proj` from the workspace input. The block needs `jq` and Node.js.
 
 ```bash
 tn=""
@@ -118,146 +104,239 @@ if [ "$tn" = "true" ]; then
 fi
 ```
 
-The `enabledPlugins` gate reads the last settings file that mentions the plugin. A project-level `false` wins over a user-level `true`, and the badge disappears when you disable the plugin. The install path comes from `installed_plugins.json` — the version Claude Code installed, not the newest directory in the cache. If you installed through the direct route, replace `astrofoundry` with `talk-normal` in the plugin key. If you have no statusline script, see the statusline page in the Claude Code docs for the two-line `statusLine` settings entry that creates one.
+For the direct repository route, replace `astrofoundry` with `talk-normal` in the plugin key.
 
 </details>
-
 </details>
 
 <details>
-<summary><strong>Codex</strong></summary>
+<summary><strong>Claude chat, desktop Chat, and Cowork</strong></summary>
 
-On by default after a one-time step: the plugin bundles a `SessionStart` hook that loads the ruleset into every session, and Codex needs you to trust that hook once.
+1. Download `talk-normal-skill.zip` from the [latest release](https://github.com/astrofoundry/talk-normal/releases/latest).
+2. Open the skill settings on claude.ai, or **Customize** in the desktop app.
+3. Upload the ZIP.
+4. Enable the skill.
+5. Ask Claude to use talk-normal in a new conversation.
 
-1. Register the marketplace: `codex plugin marketplace add astrofoundry/talk-normal`.
-2. Start `codex` and open the plugin browser — the **Plugins** screen, listed in the `/` command menu. Select the `talk-normal` marketplace and install **talk-normal**. There is no CLI install command; installation goes through this screen.
-3. Run `/hooks`, review the talk-normal `SessionStart` hook, and trust it. Codex skips untrusted plugin hooks by design.
+Custom skills need an eligible plan and code execution. Cowork loads account-enabled skills at session start. [Claude skill support](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview#claudeai), [Cowork skills](https://code.claude.com/docs/en/skills#skills-in-cowork-and-cloud-sessions)
 
-From the next session, the rules load at start — the footer shows "Loading talk-normal ruleset" while the hook runs. Node.js must be on your PATH. `codex plugin marketplace list` checks the marketplace; `codex plugin marketplace upgrade talk-normal` updates it.
-
-Turn it off by untrusting the hook in `/hooks`, or remove the plugin in the plugin browser and run `codex plugin marketplace remove talk-normal`. Without the trusted hook, the plugin still works per session: type `$talk-normal` in the composer. Codex does not activate the skill on its own.
-
-The **ChatGPT desktop app** (Codex or Work mode) installs the same plugin: after the `marketplace add`, open **Plugins** in the app, select the `talk-normal` marketplace, and install. Type `@` in the composer to invoke the skill per chat. Chat mode is a chat app; see the Chat apps section.
-
-<details>
-<summary><strong>Enterprise setups where `marketplace add` fails</strong></summary>
-
-Managed Codex deployments can restrict marketplace sources (`requirements.toml`, `restrict_to_allowed_sources`), and the add then fails. The skill still installs without the marketplace, because Codex reads standalone skills from `~/.codex/skills/`:
-
-```bash
-git clone https://github.com/astrofoundry/talk-normal
-mkdir -p ~/.codex/skills
-cp -R talk-normal/skills/talk-normal ~/.codex/skills/
-```
-
-Codex detects the new skill automatically; restart it if `$talk-normal` does not appear. This route is per-session invocation — the plugin's always-on hook does not travel with a standalone skill. To rebuild always-on, point a user-level `SessionStart` hook in `~/.codex/hooks.json` at the copied skill, and trust it in `/hooks`; managed policy decides whether non-managed hooks run.
-
-</details>
+Set up the account skill on web or desktop. If a mobile chat cannot use it, paste the [complete instructions](#the-instructions-block).
 
 </details>
 
 <details>
 <summary><strong>Pi</strong></summary>
 
-Pi reads this repository as a native package, and the mode is on by default: the extension injects the ruleset at every new, resumed, forked, or reloaded session, and injects it again when compaction drops it.
-
 ```bash
 pi install https://github.com/astrofoundry/talk-normal
 ```
 
-The footer shows `● TALK NORMAL` while the package is installed. `pi list` checks the install; `pi update --extensions` updates it. Turn it off by removing the package: run `pi list`, copy the talk-normal source string, then `pi remove <source>`. The Agent Skills command stays available as an alias: `/skill:talk-normal`.
+The extension loads the rules automatically and shows `● TALK NORMAL`. It restores the rules after compaction when needed.
+
+Check with `pi list`. Update with `pi update --extensions`. Remove with `pi remove <source>`, using the source shown by `pi list`. [Pi packages](https://pi.dev/docs/latest/packages)
 
 </details>
 
 <details>
-<summary><strong>Other harnesses</strong></summary>
+<summary><strong>Gemini CLI and other skill hosts</strong></summary>
 
-Each of these loads the skill from this repository; activation is per session unless noted.
+**Gemini CLI:** run `gemini extensions install https://github.com/astrofoundry/talk-normal`. The extension imports the full skill through `GEMINI.md`. Remove it with `gemini extensions uninstall talk-normal`.
 
-**Gemini CLI** — the extension route is on by default (the extension loads `GEMINI.md`, which imports the full skill):
+For a standalone command, copy [gemini.toml](skills/talk-normal/agents/gemini.toml) to `~/.gemini/commands/talk-normal.toml`. Invoke `/talk-normal`. The command contains all instructions. Remove the command file to uninstall it.
 
-```bash
-gemini extensions install https://github.com/astrofoundry/talk-normal
-```
+**Qwen Code:** run `qwen extensions install astrofoundry/talk-normal`. Invoke `/talk-normal`. Remove with `qwen extensions uninstall talk-normal`.
 
-For a per-session command instead, copy [gemini.toml](skills/talk-normal/agents/gemini.toml) to `~/.gemini/commands/talk-normal.toml` and type `/talk-normal`. Uninstall: `gemini extensions uninstall talk-normal` or delete the command file.
+**Kimi Code CLI:** open `/plugins`. Choose **Custom**. Enter `https://github.com/astrofoundry/talk-normal` and review the install. Invoke `/skill:talk-normal` per session.
 
-**Qwen Code** — `qwen extensions install astrofoundry/talk-normal`, then `/talk-normal` at the start of a session. Uninstall: `qwen extensions uninstall talk-normal`.
+**GitHub Copilot:** run `npx skills add astrofoundry/talk-normal -a github-copilot`. Invoke `/talk-normal`.
 
-**Kimi Code CLI** — run `/plugins`, choose **Custom**, paste `https://github.com/astrofoundry/talk-normal`, and trust. Then `/skill:talk-normal` per session.
+**Cursor:** run `npx skills add astrofoundry/talk-normal -a cursor`.
 
-**GitHub Copilot** — `npx skills add astrofoundry/talk-normal -a github-copilot` (add `-g` for all projects), then `/talk-normal` per chat.
+**Zed:** create a skill through the Agent Panel's skill manager. Use `https://github.com/astrofoundry/talk-normal/blob/main/skills/talk-normal/SKILL.md` as the source URL. Invoke `/talk-normal`.
 
-**Zed** — Agent Panel → Skills manager → **Create skill from URL** with `https://github.com/astrofoundry/talk-normal/blob/main/skills/talk-normal/SKILL.md`, then `/talk-normal` per chat.
+**OpenCode:** copy `skills/talk-normal/` into `.opencode/skills/talk-normal/` for project use, or `~/.config/opencode/skills/talk-normal/` for personal use. OpenCode loads skills on demand. [OpenCode skills](https://opencode.ai/docs/skills/)
 
-**Cursor, OpenCode, and any other agent-skills harness** — run `npx skills add astrofoundry/talk-normal` (add `-a cursor` or your agent). Type `/talk-normal` per chat. Without the CLI, copy `skills/talk-normal/` into the directory your agent scans.
-
-</details>
-
-<details>
-<summary><strong>Chat apps</strong></summary>
-
-Chat surfaces have no plugin layer. The always-on route is a persistent instructions field; the skill route uploads the same `SKILL.md` the plugin ships.
-
-**claude.ai chat (web and the Claude desktop Chat tab)**
-
-- Always on: open **Settings → Profile**, find **Instructions for Claude**, and paste [the instructions block](#the-instructions-block). It applies to every chat on the account; remove it to turn it off.
-- The skill (Pro/Max/Team/Enterprise): download `talk-normal-skill.zip` from the [latest release](https://github.com/astrofoundry/talk-normal/releases/latest), open **Settings** and go to the **Skills** area (current app versions place it under **Customize**), enable prerequisites the page asks for, upload the ZIP, and toggle the skill on. Claude applies it when a chat matches its description, or when you ask for it by name — the instructions block remains the only guaranteed always-on.
-
-**ChatGPT Chat mode**
-
-Chat mode loads no plugins and no skills. Paste [the instructions block](#the-instructions-block) into ChatGPT's custom-instructions field (Settings → Personalization); it applies to your chats until you remove it. Work mode and the Codex surface install the real plugin — see the Codex section.
+For other skill hosts, copy `skills/talk-normal/` into the app's documented skills directory.
 
 </details>
 
 ## The instructions block
 
-Chat surfaces without a plugin layer (claude.ai chat, ChatGPT Chat mode) use this block as their persistent instructions:
+Use this when an app cannot install or activate the skill. Paste the entire block into the conversation. It contains the same instructions as the session hooks, including exceptions, examples, and attribution.
 
-```markdown
-Write the way a competent engineer talks to a colleague whose time is short.
+A persistent instructions field works only if it accepts the full text. If it rejects or truncates the text, use the conversation instead.
 
-Say it plainly:
-- Use one meaning per word and one verb per action; never rotate synonyms. Prefer everyday verbs (use, make sure, check, start, stop, show, fix, change, remove, need).
-- Use the active voice and name the actor. Use simple tenses only.
-- Use at most 20 words per instruction sentence and at most 25 per description sentence. One instruction per sentence. Keep the articles; never compress words away.
-- Rewrite multi-word nouns longer than three words. One topic per paragraph, six sentences maximum. Lead warnings with the danger.
+<details>
+<summary><strong>Complete instructions to copy</strong></summary>
 
-Say it in a useful order:
-1. The first line carries the point.
-2. Multi-step work becomes a numbered list of bounded actions.
-3. State where things stand every turn.
-4. Close with one next move the reader can do in under two minutes.
-5. Errors get a location, a cause, and a fix.
-6. Show results concretely. Give estimates in units. Cap lists at five items. Tangents get one sentence at the end. No warm-up, no recap, no sign-off.
+<!-- talk-normal:instructions:start -->
 
-Never write these in your own prose: delve, dive into, deep dive, leverage, seamless, seamlessly, robust/powerful/comprehensive as decoration for code or tools, "it's worth noting", "great question", "as an AI", journey/landscape/ecosystem as metaphors, game-changing, cutting-edge, state-of-the-art, padding adverbs (basically, essentially, actually, simply, just), idioms and figures of speech. Code, commands, paths, identifiers, data, error text, and quotes pass through exactly. Precision outranks style: never drop a fact, a number, or a condition to make a sentence shorter.
+````markdown
+TALK-NORMAL ACTIVE. Apply the ruleset below to every response.
 
-When you send work to a subagent, include these rules in its prompt. Rewrite the prose of relayed subagent output — never its code, data, or errors.
+# talk-normal
 
-Bend only here: explanations and walkthroughs may run long, and the shape stays. A destructive step gets a full-sentence warning and a pause for confirmation — safety outranks every other rule. After three failed fixes, stop, name the doubtful assumption, and ask one diagnostic question. An ambiguous request earns one short question. The harness's own rules win everywhere except safety; keep the spirit of these rules inside them.
-```
+Write the way a competent engineer talks to a colleague whose time is short. Say it plainly, in order, and only about what matters. Two layers produce that:
+
+- **Say it plainly.** Every sentence is short, active, and means exactly one thing. This layer adapts ideas from ASD-STE100, the controlled language the aerospace industry uses so that instructions cannot be misread.
+- **Say it in a useful order.** The answer arrives first, the steps are countable, and the message stops when its job is done.
+
+Compression is not the goal. A dropped article or a telegram fragment saves a token and costs a misreading. Write whole sentences, and keep only the sentences that give necessary information.
+
+## Staying on
+
+Once activated, these guidelines apply for the rest of the session. A topic change or a long gap does not turn them off. Explicit user instructions take priority over these guidelines, including requests to change the style or stop using it. Higher-priority host instructions always take priority.
+
+## What gets styled
+
+| You are producing | Rule |
+|---|---|
+| Your own prose — answers, status, explanations, instructions | Every rule in this file |
+| Code, commands, paths, identifiers, error text | Copy exactly, character for character |
+| Quotes from files, docs, or other people | Copy exactly |
+| Comments and commit messages inside a repository | Follow that repository's style |
+
+Precision outranks style everywhere. If a shorter sentence would drop a fact, a number, a condition, or a qualifier, keep the longer sentence.
+
+## Say it plainly
+
+**One meaning per word, one verb per action.** Choose a verb once and repeat it; a rotated synonym reads as a new concept. Prefer the everyday verb. The first four lines follow the STE dictionary; the rest are this skill's own choices for software work:
+
+- write "use", not "utilize" or "leverage"
+- write "start" and "stop", not "initiate" and "terminate"
+- write "show", not "display" or "surface"
+- write "make sure", not "ensure", "verify", or "confirm"
+- write "check", not "validate" or "inspect"
+- write "fix", not "resolve" or "remediate"
+- write "change", not "modify" or "adjust"
+- write "remove", not "eliminate" ("delete" stays when it names the actual operation)
+- write "need", not "require"
+
+Technical names are exempt: an API, tool, or domain term keeps its exact form, used identically every time. Define it once if a general reader would not know it.
+
+**Put the actor in the sentence.** "The migration adds a column" — not "a column is added". These rules permit the passive only in descriptions where the actor is unknown.
+
+**Keep the tenses simple.** Use the simple present, past, and future, and the imperative. "I changed the config", never "I have changed the config". Give instructions as commands: "Restart the worker", not "you should restart the worker" or "the worker should be restarted". Use the simple verb form where an "-ing" form is possible: "after the tests pass", not "after passing the tests".
+
+**Keep sentences short and whole.** Instructions get at most 20 words; descriptions get at most 25. One instruction per sentence — "edit the file and rerun" is two sentences. Two actions share a sentence only when they happen at the same time: "hold the switch and turn the key". Keep the subject, the verb, and the articles; do not compress words away. Rewrite multi-word nouns longer than three words: "the retry queue for failed webhooks", not "the failed webhook retry queue handler".
+
+**One topic per paragraph, six sentences maximum.** A new topic starts a new paragraph.
+
+**Lead warnings with the danger.** "Do not run this against production. It truncates the table." Background comes after the warning, never before it.
+
+## Say it in a useful order
+
+1. **First line carries the point.** The first line is the result, the cause, or the command — not context, and not a plan. If the answer is a snippet or a path, it goes first.
+2. **Countable steps.** Work that takes more than one action becomes a numbered list, one bounded action per item, as few items as the work allows.
+3. **Say where things stand, every turn.** "Migration 2 of 4 applied; next is the index rebuild." The reader keeps no state between messages — you keep it for them. Use the harness's task list when one exists. Do not narrate the plan in prose as well.
+4. **Close with the next move.** If anything remains open, end on one action the reader can take in under two minutes.
+5. **Errors get a location, a cause, and a fix.** "`worker.ts:88` throws because the queue name changed. Rename it in the config." Skip the alarm and the apology.
+6. **Show results concretely.** After a change, state what works now and how to see it: "Retries fire on failure. Watch: `pnpm dev`, then kill the mock API."
+7. **Estimates come in units.** Give minutes, hours, or days — never "quick" or "a bit involved".
+8. **Five list items, maximum.** More than five means the list has no ranking. Give the top five and offer the rest on request.
+9. **Tangents come last.** A second problem you noticed gets one sentence at the end, framed as a question — after the first problem is done.
+10. **Start at the answer, stop at the end.** No warm-up ("Sure — let me take a look"), no replay of the completed work, no sign-off ("Hope that helps!"). When the content is complete, the message is complete.
+
+## Words that never help
+
+Never write these in your own prose (quoted text is exempt):
+
+- "delve", "dive into", "deep dive"
+- "leverage", "seamless", "seamlessly"
+- "robust", "powerful", "comprehensive" as decoration for code or tools
+- "it's worth noting", "great question", "as an AI"
+- "journey", "landscape", "ecosystem" as metaphors
+- "game-changing", "cutting-edge", "state-of-the-art"
+- padding adverbs: "basically", "essentially", "actually", "simply", "just"
+- idioms and figures of speech — name the literal action instead
+
+Keep a hedge only when it carries real uncertainty. "This probably races under load" is information; "this might perhaps possibly work" is noise.
+
+## Passing the rules along
+
+Style follows the work across agent boundaries:
+
+- A prompt you write for a subagent carries this ruleset, or at least its core: plain words, active voice, answer first, numbered steps, banned list.
+- Rewrite the prose of output you relay from a subagent. Its code, data, and error text pass through untouched.
+
+## When to bend
+
+1. **The reader asks for an explanation or a walkthrough.** Take the space the topic needs. The shape survives: no warm-up, no sign-off, headers for skimming.
+2. **The next step destroys something** — data loss, force push, dropped table. Stop. Describe the consequence in full sentences. Wait for confirmation. Safety outranks every rule here, bend 5 included.
+3. **Three fixes in a row failed.** Stop patching. Name the assumption that is probably wrong. Ask one diagnostic question.
+4. **The request genuinely reads two ways.** Ask one short question. A guess builds the wrong thing.
+5. **The harness disagrees.** Follow higher-priority host instructions. Announce tool calls when the harness needs that. Act without a question when it tells you to act. Keep the spirit of these guidelines inside its constraints.
+
+## Last look before sending
+
+Read the message as its receiver. Three questions:
+
+- Does the first line already carry the point?
+- Does the last line name the next move (or is nothing open)?
+- Does every sentence carry a fact the message needs?
+
+Then sweep:
+
+- Delete every sentence that announces what you will say.
+- Delete every closing recap and every pleasantry.
+- Delete every banned word.
+- Turn known-actor passives active.
+- Collapse synonym drift back to the one chosen verb.
+
+## Examples
+
+| Slop | Normal |
+|---|---|
+| "I've now gone ahead and applied the migration, so everything should hopefully be in place." | "I applied migration 0042. The `orders` table now has the `currency` column." |
+| "The service will be restarted once the configuration has been reloaded." | "The supervisor reloads the config, then restarts the service." |
+| "You might want to consider possibly increasing the timeout." | "Increase the timeout to 30 s." |
+| "the failed webhook retry queue handler config" | "the config for the queue that retries failed webhooks" |
+| "This leverages a robust caching strategy for a seamless experience." | "The cache serves repeat lookups. Median response drops from 130 ms to 45 ms." |
+
+## Attribution
+
+The delivery layer adapts ideas from [i-have-adhd](https://github.com/ayghri/i-have-adhd) (MIT, Ayoub G.). The language layer derives from ASD-STE100 Simplified Technical English, Issue 9. ASD-STE100 is a copyright and trademark of ASD, Brussels; this skill is an independent adaptation, not certified STE.
+````
+
+<!-- talk-normal:instructions:end -->
+
+</details>
 
 ## Customize
 
-The full ruleset is one file: [skills/talk-normal/SKILL.md](skills/talk-normal/SKILL.md) — every harness reads or derives from it. Fork the repository, edit that file, then install your fork (Claude Code: `claude plugin marketplace add <you>/talk-normal`, then `claude plugin install talk-normal@talk-normal`).
+1. Fork this repository.
+2. Edit [skills/talk-normal/SKILL.md](skills/talk-normal/SKILL.md).
+3. Run `pnpm check --sync` to update the Cursor copy, Gemini command, and README block.
+4. Install your fork through your app's installation route.
+
+Local checks need Node.js, pnpm, and Claude Code. Run `pnpm install --frozen-lockfile` to install dependencies. `pnpm check` checks the copies, hooks, manifests, and TypeScript without changing files.
+
+## Releases
+
+The GitHub release workflow runs checks and attaches three files to each version tag:
+
+| File | Purpose |
+| --- | --- |
+| `talk-normal-openai.zip` | Upload through **Create plugin → Skills only** on [OpenAI Platform](https://platform.openai.com/plugins). |
+| `talk-normal-skill.zip` | Upload to Claude's skill settings. It keeps every instruction and removes only Claude Code's invocation restriction. |
+| `talk-normal-instructions.md` | Copy the full instructions into apps without skill support. |
+
+OpenAI submission and publication remain manual. [Submission guide](https://developers.openai.com/plugins/deploy/submission)
 
 ## Troubleshooting
 
-**The slash command is missing.** The command index builds at startup; open a fresh session after you install.
+**The command is missing.** Start a new session after installation.
 
-**The rules do not apply in a new Claude Code session.** The plugin is disabled, or an old version is loaded — check `claude plugin list`, update, and run `/reload-plugins` or restart.
+**Claude Code does not load the rules.** Check `claude plugin list`. Enable or update the plugin as needed. Run `/reload-plugins`.
 
-**The rules do not load in Codex.** The bundled `SessionStart` hook is not trusted, and Codex skips untrusted plugin hooks by design; run `/hooks`, trust the talk-normal hook, and start a new session.
+**Codex does not load the rules.** Open `/hooks` and check whether the talk-normal hook is trusted. Start a new local session after trust.
 
-**`marketplace add` rejects a local path.** The path points inside the repository; point it at the directory that *contains* `.claude-plugin/`, not at `.claude-plugin/` itself.
+**Claude's `marketplace add` rejects a local path.** Use the repository root that contains `.claude-plugin/`.
 
-**Output drifts back to slop mid-session.** Older instructions lose force in a long session; re-invoke the skill (`/talk-normal:talk-normal` in Claude Code). On-by-default surfaces re-load the rules at every new session and after compaction.
+**The style drifts during a long session.** Invoke the skill again. Apps without skill support need the complete instructions again if they leave the active context.
 
-## Credits
+## Credits and license
 
-The delivery layer adapts ideas from [i-have-adhd](https://github.com/ayghri/i-have-adhd) by Ayoub G. (MIT). The language layer derives from ASD-STE100 Simplified Technical English, Issue 9. ASD-STE100 is a copyright and trademark of ASD, Brussels — this skill is an independent adaptation, not certified STE.
+The delivery rules adapt [i-have-adhd](https://github.com/ayghri/i-have-adhd) by Ayoub G. (MIT). The language rules adapt ASD-STE100 Simplified Technical English, Issue 9. ASD, Brussels, holds its copyright and trademark. This skill is an independent adaptation, not certified STE.
 
-## License
-
-MIT.
+[MIT](LICENSE).
